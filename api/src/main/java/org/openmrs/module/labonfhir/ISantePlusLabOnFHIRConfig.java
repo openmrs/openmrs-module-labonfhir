@@ -16,8 +16,6 @@ public class ISantePlusLabOnFHIRConfig {
 
 	public static final String GP_ORDER_DESTINATION_CONCEPT_UUID = "labonfhir.orderDestinationConceptUuid";
 
-	public static final String GP_ORDER_ENCOUNTER_TYPE_UUID = "labintegration.orderEncounterTypeUuid";
-
 	public static final String GP_OPENELIS_URL = "labonfhir.openElisUrl";
 
 	@Autowired
@@ -34,10 +32,6 @@ public class ISantePlusLabOnFHIRConfig {
 
 	public String getOrderDestinationConceptUuid() {
 		return administrationService.getGlobalProperty(GP_ORDER_DESTINATION_CONCEPT_UUID);
-	}
-
-	public String getOrderEncounterTypeUuid() {
-		return administrationService.getGlobalProperty(GP_ORDER_ENCOUNTER_TYPE_UUID);
 	}
 
 	public Predicate<Obs> isTestOrder() {

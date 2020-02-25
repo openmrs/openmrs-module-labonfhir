@@ -12,7 +12,7 @@ import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
-import org.openmrs.module.fhir2.Task;
+import org.openmrs.module.fhir2.FhirTask;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.module.labonfhir.api.dao.TaskDao;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class TaskDaoImpl implements TaskDao {
 
 	@Override
 	@Transactional(readOnly = true)
-	public Task getTaskForEncounter(Encounter encounter) {
+	public FhirTask getTaskForEncounter(Encounter encounter) {
 		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(Obs.class)
 				.setProjection(Projections.sqlProjection("concat('ServiceRequest/', uuid) as fhir_reference",
 						new String[] { "fhir_reference" }, new Type[] { new StringType() }))
@@ -41,8 +41,8 @@ public class TaskDaoImpl implements TaskDao {
 				.add(eq("encounter", encounter))
 				.add(eq("c.conceptId", config.getTestOrderConceptUuid()));
 
-		List<Task> tasks = sessionFactory.getCurrentSession()
-				.createCriteria(org.openmrs.module.fhir2.Task.class).add(Subqueries.eq("basedOn", detachedCriteria)).list();
+		List<FhirTask> tasks = sessionFactory.getCurrentSession()
+				.createCriteria(org.openmrs.module.fhir2.FhirTask.class).add(Subqueries.eq("basedOn", detachedCriteria)).list();
 
 		if (tasks == null || tasks.size() < 1) {
 			return null;

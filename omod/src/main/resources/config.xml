@@ -32,8 +32,6 @@
 	<require_modules>
 		<require_module>org.openmrs.event</require_module>
 		<require_module>org.openmrs.module.fhir2</require_module>
-		<!-- NB While we don't depend on labintegration for code, we do depend on its global properties -->
-		<require_module>org.openmrs.module.labintegration</require_module>
 	</require_modules>
 	
 	<!-- Internationalization -->
@@ -66,6 +64,5 @@
 		<property>@MODULE_ID@.openElisUrl</property>
 		<description>The URL for the OpenELIS system to communicate with</description>
 	</globalProperty>
-	
 </module>
 

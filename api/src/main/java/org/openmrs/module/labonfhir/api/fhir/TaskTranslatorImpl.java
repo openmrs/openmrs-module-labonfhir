@@ -19,7 +19,7 @@ public class TaskTranslatorImpl extends org.openmrs.module.fhir2.api.translators
 	private FhirServiceRequestService serviceRequestService;
 
 	@Override
-	public Task toFhirResource(org.openmrs.module.fhir2.Task openmrsTask) {
+	public Task toFhirResource(org.openmrs.module.fhir2.FhirTask openmrsTask) {
 		Task task  = super.toFhirResource(openmrsTask);
 
 		if (StringUtils.isNotBlank(openmrsTask.getBasedOn())) {
@@ -38,8 +38,8 @@ public class TaskTranslatorImpl extends org.openmrs.module.fhir2.api.translators
 	}
 
 	@Override
-	public org.openmrs.module.fhir2.Task toOpenmrsType(Task fhirTask) {
-		org.openmrs.module.fhir2.Task task = super.toOpenmrsType(fhirTask);
+	public org.openmrs.module.fhir2.FhirTask toOpenmrsType(Task fhirTask) {
+		org.openmrs.module.fhir2.FhirTask task = super.toOpenmrsType(fhirTask);
 
 		if (fhirTask.hasBasedOn()) {
 			task.setBasedOn(fhirTask.getBasedOnFirstRep().getReference());
@@ -49,8 +49,8 @@ public class TaskTranslatorImpl extends org.openmrs.module.fhir2.api.translators
 	}
 
 	@Override
-	public org.openmrs.module.fhir2.Task toOpenmrsType(org.openmrs.module.fhir2.Task openmrsTask, Task fhirTask) {
-		org.openmrs.module.fhir2.Task task = super.toOpenmrsType(openmrsTask, fhirTask);
+	public org.openmrs.module.fhir2.FhirTask toOpenmrsType(org.openmrs.module.fhir2.FhirTask openmrsTask, Task fhirTask) {
+		org.openmrs.module.fhir2.FhirTask task = super.toOpenmrsType(openmrsTask, fhirTask);
 
 		if (fhirTask.hasBasedOn()) {
 			task.setBasedOn(fhirTask.getBasedOnFirstRep().getReference());

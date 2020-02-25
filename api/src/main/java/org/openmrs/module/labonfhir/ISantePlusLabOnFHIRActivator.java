@@ -30,13 +30,13 @@ public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements
 
 	@Autowired
 	@Qualifier("openElisManager")
-	private OpenElisManager gpListener;
+	private OpenElisManager openElisManager;
 
 	@Override
 	public void started() {
 		// subscribe to encounter creation events
 		if (config.isOpenElisEnabled()) {
-			gpListener.enableOpenElisConnector();
+			openElisManager.enableOpenElisConnector();
 		}
 
 		log.info("Started iSantePlus Lab on FHIR Module");
@@ -44,7 +44,7 @@ public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements
 
 	@Override
 	public void stopped() {
-		gpListener.disableOpenElisConnector();
+		openElisManager.disableOpenElisConnector();
 
 		log.info("Shutdown iSantePlus Lab on FHIR Module");
 	}
