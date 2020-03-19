@@ -1,11 +1,15 @@
 package org.openmrs.module.labonfhir.api;
 
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.db.DAOException;
+import org.openmrs.module.fhir2.FhirConstants;
+import org.openmrs.module.fhir2.FhirReference;
+import org.openmrs.module.fhir2.FhirTask;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.translators.TaskTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
@@ -33,8 +37,11 @@ public class OpenElisFhirOrderHandler {
 			throw new OrderCreationException("Could not find order for encounter " + encounter);
 		}
 
-		org.openmrs.module.fhir2.FhirTask newTask = new org.openmrs.module.fhir2.FhirTask();
-		newTask.setBasedOn("ServiceRequest/" + orderObs.get().getUuid());
+		FhirTask newTask = new FhirTask();
+		FhirReference newReference = new FhirReference();
+		newReference.setType(FhirConstants.SERVICE_REQUEST);
+		newReference.setReference(orderObs.get().getUuid());
+		newTask.setBasedOnReferences(Collections.singleton(newReference));
 
 		Task task = taskTranslator.toFhirResource(newTask);
 		task.getMeta().addTag("http://fhir.isanteplus.com/R4/ext/lab-destination-valueset", "OpenElis", "OpenElis");
