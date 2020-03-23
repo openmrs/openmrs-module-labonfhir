@@ -13,27 +13,14 @@
         for a list of supported elements and attributes
     -->
  
- 	<!-- Uncomment the changeset below if you want to make the Item class persistable, see also Item and ISantePlusLabonFHIRDaoTest -->
- 	<!--
-	<changeSet id="labonfhir-2016-08-02-12-21" author="raff">
-		<preConditions onFail="MARK_RAN">
-			<not><tableExists tableName="labonfhir_item"/></not>
-		</preConditions>
-		<comment>
-			Creating the labonfhir_item table
-		</comment>
-		<createTable tableName="labonfhir_item">
-			<column name="labonfhir_item_id" type="int" autoIncrement="true">
-				<constraints primaryKey="true" nullable="false"/>
-			</column>
-			<column name="uuid" type="char(38)">
-				<constraints nullable="false" unique="true"></constraints>
-			</column>
-			<column name="owner" type="int" />
-			<column name="description" type="varchar(255)" />
-		</createTable>
-        <addForeignKeyConstraint constraintName="labonfhir_item_owner_fk" baseTableName="labonfhir_item" baseColumnNames="owner"  referencedTableName="users"
-                                 referencedColumnNames="user_id" />
-    </changeSet> -->
- 
+ 	<changeSet id="isanteplus-labonfhir-add-openelis-user" author="pmanko">
+        <preConditions onError="WARN" onFail="WARN">
+            <sqlCheck expectedResult="0">select count(*) from users where uuid="3f7d1c6b-2781-4707-847c-03d4cb579470"; </sqlCheck>
+        </preConditions>
+        <sql>
+            insert into person(uuid, date_created) values (UUID(), NOW());
+            insert into user(system_id, date_created, uuid)
+            VALUES ('openelis', NOW(), '3f7d1c6b-2781-4707-847c-03d4cb579470');
+        </sql>
+    </changeSet>
 </databaseChangeLog>

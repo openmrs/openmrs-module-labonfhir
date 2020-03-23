@@ -68,6 +68,8 @@ public class EncounterCreationListener implements EventListener {
 			boolean testOrder = false;
 			String orderDestinationUuid = config.getOrderDestinationConceptUuid();
 			String testOrderConceptUuid = config.getTestOrderConceptUuid();
+
+			// loop through obs to determine if encounter is a TestOrder and a OpenElis order
 			for (Obs obs : encounter.getObs()) {
 				if (openElisOrder && testOrder) {
 					break;
@@ -80,13 +82,14 @@ public class EncounterCreationListener implements EventListener {
 							openElisOrder = true;
 						}
 					}
-				} else if (testOrderConceptUuid.equals(obs.getConcept().getUuid())) {
+				} else if (testOrderConceptUuid.equals(obsConceptUuid)) {
 					if (!testOrder) {
 						testOrder = true;
 					}
 				}
 			}
 
+			// If matching orders found, create them from the encounter
 			if (openElisOrder && testOrder) {
 				log.trace("Found order(s) for encounter {}", encounter);
 				try {

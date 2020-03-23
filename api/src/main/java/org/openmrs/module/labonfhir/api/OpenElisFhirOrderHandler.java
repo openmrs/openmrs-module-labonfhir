@@ -31,20 +31,50 @@ public class OpenElisFhirOrderHandler {
 
 	public void createOrder(Encounter encounter) throws OrderCreationException {
 		AtomicReference<Obs> orderObs = new AtomicReference<>();
+
+		// Filter and Sort Obs that are Test Orders
 		encounter.getObs().stream().filter(config.isTestOrder()).findFirst().ifPresent(orderObs::set);
 
 		if (orderObs.get() == null) {
 			throw new OrderCreationException("Could not find order for encounter " + encounter);
 		}
 
-		FhirTask newTask = new FhirTask();
-		FhirReference newReference = new FhirReference();
-		newReference.setType(FhirConstants.SERVICE_REQUEST);
-		newReference.setReference(orderObs.get().getUuid());
-		newTask.setBasedOnReferences(Collections.singleton(newReference));
+		// Create basedOn Reference to Order/ServiceRequest
+		FhirReference basedOnRef = new FhirReference();
+		basedOnRef.setType(FhirConstants.SERVICE_REQUEST);
+		basedOnRef.setReference(orderObs.get().getUuid());
 
+		// Create for Reference
+		FhirReference forReference = new FhirReference();
+		forReference.setType(FhirConstants.PATIENT);
+		forReference.setReference(encounter.getPatient().getUuid());
+
+		// Create owner Reference
+		FhirReference ownerRef = new FhirReference();
+		ownerRef.setType(FhirConstants.PATIENT);
+		ownerRef.setReference(config.getOpenElisUserUuid());
+
+		// Create encounter Reference
+		FhirReference encounterRef = new FhirReference();
+		encounterRef.setType(FhirConstants.ENCOUNTER);
+		ownerRef.setReference(encounter.getUuid());
+
+		// Create Task Resource for given Order
+		FhirTask newTask = new FhirTask();
+		newTask.setStatus(FhirTask.TaskStatus.REQUESTED);
+		newTask.setIntent(FhirTask.TaskIntent.ORDER);
+		newTask.setBasedOnReferences(Collections.singleton(basedOnRef));
+		newTask.setForReference(forReference);
+		newTask.setOwnerReference(ownerRef);
+		newTask.setEncounterReference(encounterRef);
+
+		// Translate and save
 		Task task = taskTranslator.toFhirResource(newTask);
-		task.getMeta().addTag("http://fhir.isanteplus.com/R4/ext/lab-destination-valueset", "OpenElis", "OpenElis");
+
+		// Not needed due to use of `owner` element
+		// task.getMeta().addTag("http://fhir.isanteplus.com/R4/ext/lab-destination-valueset", "OpenElis", "OpenElis");
+
+		// Save the new Task Resource
 		try {
 			taskService.saveTask(task);
 		} catch (DAOException e) {

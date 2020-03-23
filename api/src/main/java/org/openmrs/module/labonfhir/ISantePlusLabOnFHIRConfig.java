@@ -18,6 +18,8 @@ public class ISantePlusLabOnFHIRConfig {
 
 	public static final String GP_OPENELIS_URL = "labonfhir.openElisUrl";
 
+	public static final String OPENELIS_USER_UUID = "3f7d1c6b-2781-4707-847c-03d4cb579470";
+
 	@Autowired
 	@Qualifier("adminService")
 	AdministrationService administrationService;
@@ -34,6 +36,10 @@ public class ISantePlusLabOnFHIRConfig {
 		return administrationService.getGlobalProperty(GP_ORDER_DESTINATION_CONCEPT_UUID);
 	}
 
+	public String getOpenElisUserUuid() {
+
+	}
+
 	public Predicate<Obs> isTestOrder() {
 		final String testOrderConceptUuid = getTestOrderConceptUuid();
 		return o -> testOrderConceptUuid.equals(o.getConcept().getUuid());
@@ -42,4 +48,5 @@ public class ISantePlusLabOnFHIRConfig {
 	public boolean isOpenElisEnabled() {
 		return StringUtils.isNotBlank(getOpenElisUrl());
 	}
+
 }
