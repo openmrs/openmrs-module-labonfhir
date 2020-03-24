@@ -39,8 +39,8 @@ public class FetchTaskUpdatesTest {
 //	@Mock
 //	private FhirTaskDao taskDao;
 
-	@Mock
-	private TaskTranslator taskTranslator;
+//	@Mock
+//	private TaskTranslator taskTranslator;
 
 	@Before
 	public void setup() {
@@ -48,7 +48,7 @@ public class FetchTaskUpdatesTest {
 		updateTask.setClientFactory(clientFactory);
 		updateTask.setConfig(config);
 		// updateTask.setTaskDao(taskDao);
-		updateTask.setTaskTranslator(taskTranslator);
+		//updateTask.setTaskTranslator(taskTranslator);
 	}
 
 	@Test

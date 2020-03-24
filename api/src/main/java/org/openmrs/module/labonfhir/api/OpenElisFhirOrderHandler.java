@@ -3,14 +3,12 @@ package org.openmrs.module.labonfhir.api;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.hl7.fhir.r4.model.Task;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.FhirReference;
 import org.openmrs.module.fhir2.FhirTask;
-import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.dao.FhirTaskDao;
 import org.openmrs.module.fhir2.api.translators.TaskTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
@@ -24,8 +22,8 @@ public class OpenElisFhirOrderHandler {
 	@Autowired
 	private ISantePlusLabOnFHIRConfig config;
 
-//	@Autowired
-//	private FhirTaskDao taskDao;
+	@Autowired
+	private FhirTaskDao taskDao;
 
 	@Autowired
 	private TaskTranslator taskTranslator;
@@ -69,14 +67,12 @@ public class OpenElisFhirOrderHandler {
 		newTask.setOwnerReference(ownerRef);
 		newTask.setEncounterReference(encounterRef);
 
-		// Translate and save
-
 		// Not needed due to use of `owner` element
 		// task.getMeta().addTag("http://fhir.isanteplus.com/R4/ext/lab-destination-valueset", "OpenElis", "OpenElis");
 
 		// Save the new Task Resource
 		try {
-			return; // taskDao.saveTask(newTask);
+			taskDao.saveTask(newTask);
 		} catch (DAOException e) {
 			throw new OrderCreationException("Exception occurred while creating task for order " + orderObs.get().getUuid(), e);
 		}

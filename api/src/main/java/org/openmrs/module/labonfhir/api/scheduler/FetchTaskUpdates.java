@@ -35,8 +35,8 @@ public class FetchTaskUpdates extends AbstractTask {
 	@Autowired
 	private ISantePlusLabOnFHIRConfig config;
 
-//	@Autowired
-//	private FhirTaskDao taskDao;
+	@Autowired
+	private FhirTaskDao taskDao;
 
 	@Autowired
 	private TaskTranslator taskTranslator;
@@ -64,16 +64,19 @@ public class FetchTaskUpdates extends AbstractTask {
 		for (Iterator resources = outcomes.getEntry().iterator(); resources.hasNext(); ) {
 
 			// Update task status and output
-			// taskDao.saveTask(taskTranslator.toOpenmrsType((Task) resources.next()));
+			taskDao.saveTask(taskTranslator.toOpenmrsType((Task) resources.next()));
 
 		}
 	}
 
 	private Collection<String> getOpenelisTaskUuids() {
 		ReferenceParam ownerRef = new ReferenceParam().setValue(FhirConstants.PRACTITIONER + "/" + config.getOpenElisUserUuid());
-		Collection<FhirTask> openelisTasks = null; //taskDao.searchForTasks(null, ownerRef, null, null);
-
-		return null; // openelisTasks.stream().map(FhirTask::getUuid).collect(Collectors.toList());
+		Collection<FhirTask> openelisTasks = taskDao.searchForTasks(null, ownerRef, null, null);
+		if(!openelisTasks.isEmpty()){
+			return openelisTasks.stream().map(FhirTask::getUuid).collect(Collectors.toList());
+		} else {
+			return Collections.EMPTY_LIST;
+		}
 	}
 
 
