@@ -12,15 +12,26 @@
         See http://www.liquibase.org/manual/home#available_database_refactorings
         for a list of supported elements and attributes
     -->
- 
- 	<changeSet id="isanteplus-labonfhir-add-openelis-user" author="pmanko">
-        <preConditions onError="WARN" onFail="WARN">
-            <sqlCheck expectedResult="0">select count(*) from users where uuid="3f7d1c6b-2781-4707-847c-03d4cb579470"; </sqlCheck>
+
+    <changeSet id="create-openelis-pull-task-2020-03-24" author="pmanko" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM scheduler_task_config
+                WHERE schedulable_class = 'org.openmrs.module.labonfhir.api.scheduler.FetchTaskUpdates'
+                And name = 'OpenELIS Pull Task'
+            </sqlCheck>
         </preConditions>
-        <sql>
-            insert into person(uuid, date_created) values (UUID(), NOW());
-            insert into user(system_id, date_created, uuid)
-            VALUES ('openelis', NOW(), '3f7d1c6b-2781-4707-847c-03d4cb579470');
-        </sql>
+        <comment>Inserting Auto Close Visits Task into 'schedule_task_config' table</comment>
+        <insert tableName="scheduler_task_config">
+            <column name="name" value="OpenELIS Pull Task" />
+            <column name="description" value="Updates relevant resources fetched from OpenELIS FHIR Server" />
+            <column name="schedulable_class" value="org.openmrs.module.labonfhir.api.scheduler.FetchTaskUpdates" />
+            <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss" />
+            <column name="start_time" valueDate="2020-03-20T23:59:59" />
+            <column name="repeat_interval" value="100000" />
+            <column name="date_created" valueDate="CURRENT_TIMESTAMP" />
+            <column name="created_by" value="1" />
+            <column name="uuid" value="8c17b376-1a2v-11e1-a51a-00248140a5eb" />
+        </insert>
     </changeSet>
 </databaseChangeLog>

@@ -11,8 +11,7 @@
   		    http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
     <context:component-scan base-package="org.openmrs.module.labonfhir"/>
-    <bean name="labFhirContext" class="ca.uhn.fhir.context.FhirContext" factory-method="forR4" />
-    <bean name="labRestfulClientFactory" factory-bean="labFhirContext" factory-method="getRestfulClientFactory" />
+    <bean name="labRestfulClientFactory" factory-bean="fhirR4" factory-method="getRestfulClientFactory" />
     <bean parent="openmrsEventListeners">
         <property name="globalPropertyListeners">
             <list merge="true">

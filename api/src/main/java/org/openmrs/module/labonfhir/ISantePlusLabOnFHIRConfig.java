@@ -16,7 +16,7 @@ public class ISantePlusLabOnFHIRConfig {
 
 	public static final String GP_ORDER_DESTINATION_CONCEPT_UUID = "labonfhir.orderDestinationConceptUuid";
 
-	public static final String GP_OPENELIS_URL = "labonfhir.openElisUrl";
+	public static final String GP_OPENELIS_URL = "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/";
 
 	public static final String OPENELIS_USER_UUID = "3f7d1c6b-2781-4707-847c-03d4cb579470";
 
@@ -37,7 +37,7 @@ public class ISantePlusLabOnFHIRConfig {
 	}
 
 	public String getOpenElisUserUuid() {
-
+		return OPENELIS_USER_UUID;
 	}
 
 	public Predicate<Obs> isTestOrder() {
@@ -48,5 +48,4 @@ public class ISantePlusLabOnFHIRConfig {
 	public boolean isOpenElisEnabled() {
 		return StringUtils.isNotBlank(getOpenElisUrl());
 	}
-
 }

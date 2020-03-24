@@ -90,7 +90,8 @@ public class EncounterCreationListener implements EventListener {
 			}
 
 			// If matching orders found, create them from the encounter
-			if (openElisOrder && testOrder) {
+			//if (openElisOrder && testOrder) {
+			if(true) {
 				log.trace("Found order(s) for encounter {}", encounter);
 				try {
 					handler.createOrder(encounter);

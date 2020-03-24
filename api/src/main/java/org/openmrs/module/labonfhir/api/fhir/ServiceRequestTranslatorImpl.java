@@ -15,8 +15,10 @@ import org.openmrs.module.fhir2.api.translators.ServiceRequestTranslator;
 import org.openmrs.module.fhir2.api.translators.impl.AbstractReferenceHandlingTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+@Primary
 @Component("labOnFHIRServiceRequestTranslatorImpl")
 public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTranslator implements ServiceRequestTranslator<Obs> {
 

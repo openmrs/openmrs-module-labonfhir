@@ -6,8 +6,10 @@ import org.openmrs.module.fhir2.api.FhirServiceRequestService;
 import org.openmrs.module.fhir2.api.dao.FhirServiceRequestDao;
 import org.openmrs.module.fhir2.api.translators.ServiceRequestTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+@Primary
 @Component("labFhirServiceRequestService")
 public class FhirServiceRequestServiceImpl implements FhirServiceRequestService {
 
