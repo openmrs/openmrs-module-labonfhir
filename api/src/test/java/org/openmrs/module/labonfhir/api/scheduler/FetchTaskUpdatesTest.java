@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import org.hl7.fhir.r4.model.Dosage;
@@ -27,31 +28,36 @@ public class FetchTaskUpdatesTest {
 
 	private static final String DRUG_ORDER_UUID = "44fdc8ad-fe4d-499b-93a8-8a991c1d477e";
 
+	private FetchTaskUpdates updateTask;
+
 	@Mock
 	private IRestfulClientFactory clientFactory;
 
 	@Mock
 	private ISantePlusLabOnFHIRConfig config;
 
-	@Mock
-	private FhirTaskDao taskDao;
+//	@Mock
+//	private FhirTaskDao taskDao;
 
 	@Mock
 	private TaskTranslator taskTranslator;
 
 	@Before
 	public void setup() {
-		FetchTaskUpdates updateTask = new FetchTaskUpdates();
+		updateTask = new FetchTaskUpdates();
 		updateTask.setClientFactory(clientFactory);
 		updateTask.setConfig(config);
-		updateTask.setTaskDao(taskDao);
+		// updateTask.setTaskDao(taskDao);
 		updateTask.setTaskTranslator(taskTranslator);
 	}
 
-	@Ignore
 	@Test
 	public void execute_should_update_tasks() {
+		when(config.isOpenElisEnabled()).thenReturn(true);
+		String result = null;
+		updateTask.execute();
 
+		assertThat(result, notNullValue());
 	}
 
 }

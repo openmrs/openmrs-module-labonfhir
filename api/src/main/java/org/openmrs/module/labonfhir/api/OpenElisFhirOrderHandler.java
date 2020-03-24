@@ -11,6 +11,7 @@ import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.FhirReference;
 import org.openmrs.module.fhir2.FhirTask;
 import org.openmrs.module.fhir2.api.FhirTaskService;
+import org.openmrs.module.fhir2.api.dao.FhirTaskDao;
 import org.openmrs.module.fhir2.api.translators.TaskTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
@@ -23,8 +24,8 @@ public class OpenElisFhirOrderHandler {
 	@Autowired
 	private ISantePlusLabOnFHIRConfig config;
 
-	@Autowired
-	private FhirTaskService taskService;
+//	@Autowired
+//	private FhirTaskDao taskDao;
 
 	@Autowired
 	private TaskTranslator taskTranslator;
@@ -69,14 +70,13 @@ public class OpenElisFhirOrderHandler {
 		newTask.setEncounterReference(encounterRef);
 
 		// Translate and save
-		Task task = taskTranslator.toFhirResource(newTask);
 
 		// Not needed due to use of `owner` element
 		// task.getMeta().addTag("http://fhir.isanteplus.com/R4/ext/lab-destination-valueset", "OpenElis", "OpenElis");
 
 		// Save the new Task Resource
 		try {
-			taskService.saveTask(task);
+			return; // taskDao.saveTask(newTask);
 		} catch (DAOException e) {
 			throw new OrderCreationException("Exception occurred while creating task for order " + orderObs.get().getUuid(), e);
 		}

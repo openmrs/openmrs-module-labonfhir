@@ -35,8 +35,8 @@ public class FetchTaskUpdates extends AbstractTask {
 	@Autowired
 	private ISantePlusLabOnFHIRConfig config;
 
-	@Autowired
-	private FhirTaskDao taskDao;
+//	@Autowired
+//	private FhirTaskDao taskDao;
 
 	@Autowired
 	private TaskTranslator taskTranslator;
@@ -50,11 +50,13 @@ public class FetchTaskUpdates extends AbstractTask {
 		IGenericClient client = clientFactory.newGenericClient(config.getOpenElisUrl());
 		Bundle requestBundle = new Bundle();
 
-
 		// Query OpenELIS for tasks that match the set of UUIDS
 		// Create a bundle request component for each task you request
-		for(String uuid : getOpenelisTaskUuids()) {
-			requestBundle.addEntry().setRequest(new Bundle.BundleEntryRequestComponent().setMethod(Bundle.HTTPVerb.GET).setUrl(config.getOpenElisUrl()+"/Task/"+uuid));
+		Collection<String> taskUuids = getOpenelisTaskUuids();
+		if(taskUuids != null && !taskUuids.isEmpty()) {
+			for(String uuid : taskUuids) {
+				requestBundle.addEntry().setRequest(new Bundle.BundleEntryRequestComponent().setMethod(Bundle.HTTPVerb.GET).setUrl(config.getOpenElisUrl()+"/Task/"+uuid));
+			}
 		}
 
 		Bundle outcomes = client.transaction().withBundle(requestBundle).encodedJson().execute();
@@ -62,15 +64,16 @@ public class FetchTaskUpdates extends AbstractTask {
 		for (Iterator resources = outcomes.getEntry().iterator(); resources.hasNext(); ) {
 
 			// Update task status and output
-			taskDao.saveTask(taskTranslator.toOpenmrsType((Task) resources.next()));
+			// taskDao.saveTask(taskTranslator.toOpenmrsType((Task) resources.next()));
+
 		}
 	}
 
 	private Collection<String> getOpenelisTaskUuids() {
 		ReferenceParam ownerRef = new ReferenceParam().setValue(FhirConstants.PRACTITIONER + "/" + config.getOpenElisUserUuid());
-		Collection<FhirTask> openelisTasks = taskDao.searchForTasks(null, ownerRef, null, null);
+		Collection<FhirTask> openelisTasks = null; //taskDao.searchForTasks(null, ownerRef, null, null);
 
-		return openelisTasks.stream().map(FhirTask::getUuid).collect(Collectors.toList());
+		return null; // openelisTasks.stream().map(FhirTask::getUuid).collect(Collectors.toList());
 	}
 
 

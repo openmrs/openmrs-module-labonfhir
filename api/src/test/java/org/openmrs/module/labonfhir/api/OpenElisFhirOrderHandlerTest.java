@@ -9,9 +9,11 @@ public class OpenElisFhirOrderHandlerTest {
 
 	@Before
 	public void setUp() throws Exception {
+
 	}
 
 	@Test
-	public void createOrder() {
+	public void createOrder_shouldCreateTaskAndERferenceOrder() {
+
 	}
 }
