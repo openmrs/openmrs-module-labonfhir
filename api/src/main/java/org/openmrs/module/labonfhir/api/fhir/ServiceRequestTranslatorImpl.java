@@ -14,6 +14,8 @@ import org.openmrs.module.fhir2.api.translators.ConceptTranslator;
 import org.openmrs.module.fhir2.api.translators.ServiceRequestTranslator;
 import org.openmrs.module.fhir2.api.translators.impl.AbstractReferenceHandlingTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
+import javax.inject.Inject;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;

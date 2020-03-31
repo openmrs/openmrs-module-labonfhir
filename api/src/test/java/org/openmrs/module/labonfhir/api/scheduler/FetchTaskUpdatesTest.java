@@ -21,7 +21,7 @@ import org.openmrs.module.fhir2.api.translators.ConceptTranslator;
 import org.openmrs.module.fhir2.api.translators.TaskTranslator;
 import org.openmrs.module.fhir2.api.translators.impl.DosageTranslatorImpl;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.inject.Inject;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FetchTaskUpdatesTest {
