@@ -13,6 +13,10 @@
 	<description>Omod submodule for ISantePlus Lab on FHIR</description>
 
 	<dependencies>
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>hapi-fhir-client</artifactId>
+		</dependency>
         <dependency>
             <groupId>org.openmrs.module</groupId>
             <artifactId>labonfhir-api</artifactId>

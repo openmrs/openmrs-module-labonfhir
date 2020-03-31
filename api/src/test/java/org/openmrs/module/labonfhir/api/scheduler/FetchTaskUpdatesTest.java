@@ -1,27 +1,15 @@
 package org.openmrs.module.labonfhir.api.scheduler;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
-import org.hl7.fhir.r4.model.Dosage;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.openmrs.DrugOrder;
-import org.openmrs.module.fhir2.api.FhirTaskService;
-import org.openmrs.module.fhir2.api.dao.FhirTaskDao;
-import org.openmrs.module.fhir2.api.translators.ConceptTranslator;
-import org.openmrs.module.fhir2.api.translators.TaskTranslator;
-import org.openmrs.module.fhir2.api.translators.impl.DosageTranslatorImpl;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
-import javax.inject.Inject;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FetchTaskUpdatesTest {
@@ -30,8 +18,8 @@ public class FetchTaskUpdatesTest {
 
 	private FetchTaskUpdates updateTask;
 
-	@Mock
-	private IRestfulClientFactory clientFactory;
+//	@Mock
+//	private IRestfulClientFactory clientFactory;
 
 	@Mock
 	private ISantePlusLabOnFHIRConfig config;
@@ -45,7 +33,7 @@ public class FetchTaskUpdatesTest {
 	@Before
 	public void setup() {
 		updateTask = new FetchTaskUpdates();
-		updateTask.setClientFactory(clientFactory);
+		// updateTask.setClientFactory(clientFactory);
 		updateTask.setConfig(config);
 		// updateTask.setTaskDao(taskDao);
 		//updateTask.setTaskTranslator(taskTranslator);

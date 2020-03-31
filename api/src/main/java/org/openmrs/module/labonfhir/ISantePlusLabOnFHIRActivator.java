@@ -8,13 +8,12 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 package org.openmrs.module.labonfhir;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.openmrs.module.BaseModuleActivator;
 import org.openmrs.module.labonfhir.api.OpenElisManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,7 +22,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 @Component
 public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements ApplicationContextAware {
-	private Log log = LogFactory.getLog(this.getClass());
+	private static final Logger log = LoggerFactory.getLogger(ISantePlusLabOnFHIRActivator.class);
 	private ApplicationContext applicationContext;
 
 	@Autowired
@@ -35,21 +34,21 @@ public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements
 
 	@Override
 	public void started() {
-		if (applicationContext != null) {
-			applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
-
-			// subscribe to encounter creation events
-			if (config.isOpenElisEnabled()) {
-				openElisManager.enableOpenElisConnector();
-			}
-		}
+//		if (applicationContext != null) {
+//			applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
+//
+//			// subscribe to encounter creation events
+//			if (config.isOpenElisEnabled()) {
+//				openElisManager.enableOpenElisConnector();
+//			}
+//		}
 		log.info("Started iSantePlus Lab on FHIR Module");
 	}
 	@Override
 	public void stopped() {
-		if (openElisManager != null) {
-			openElisManager.disableOpenElisConnector();
-		}
+//		if (openElisManager != null) {
+//			openElisManager.disableOpenElisConnector();
+//		}
 		log.info("Shutdown iSantePlus Lab on FHIR Module");
 	}
 	@Override
