@@ -11,12 +11,14 @@ package org.openmrs.module.labonfhir;
 
 import org.openmrs.module.BaseModuleActivator;
 import org.openmrs.module.labonfhir.api.OpenElisManager;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 @Component
-public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator /* implements ApplicationContextAware*/ {
+public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator  implements ApplicationContextAware {
 	//private static final Logger log = LoggerFactory.getLogger(ISantePlusLabOnFHIRActivator.class);
 	private ApplicationContext applicationContext;
 
@@ -38,6 +40,7 @@ public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator /* impleme
 //			}
 //		}
 		// log.info("Started iSantePlus Lab on FHIR Module");
+		return;
 	}
 	@Override
 	public void stopped() {
@@ -46,8 +49,9 @@ public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator /* impleme
 //		}
 		// log.info("Shutdown iSantePlus Lab on FHIR Module");
 	}
-//	@Override
-//	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-//		this.applicationContext = applicationContext;
-//	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
 }
