@@ -2,11 +2,15 @@ package org.openmrs.module.labonfhir.api;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.apache.commons.lang.StringUtils;
 import org.openmrs.Encounter;
 import org.openmrs.GlobalProperty;
 import org.openmrs.api.GlobalPropertyListener;
 import org.openmrs.event.Event;
+import org.openmrs.module.DaemonToken;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.module.labonfhir.api.event.EncounterCreationListener;
 
@@ -18,7 +22,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenElisManager implements GlobalPropertyListener {
 
-	 private static final Logger log = LoggerFactory.getLogger(OpenElisManager.class);
+	private static final Logger log = LoggerFactory.getLogger(OpenElisManager.class);
+
+	public void setDaemonToken(DaemonToken daemonToken) {
+		this.daemonToken = daemonToken;
+	}
+
+	private DaemonToken daemonToken;
 
 	@Autowired
 	private EncounterCreationListener encounterListener;
@@ -48,6 +58,9 @@ public class OpenElisManager implements GlobalPropertyListener {
 
 	public void enableOpenElisConnector() {
 		log.info("Enabling OpenElis FHIR Connector");
+
+		encounterListener.setDaemonToken(daemonToken);
+
 		if (!isRunning.get()) {
 			Event.subscribe(Encounter.class, Event.Action.CREATED.toString(), encounterListener);
 		}

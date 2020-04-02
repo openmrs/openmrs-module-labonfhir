@@ -9,9 +9,10 @@
  */
 package org.openmrs.module.labonfhir;
 
-import ca.uhn.fhir.rest.client.apache.ApacheRestfulClientFactory;
 import lombok.SneakyThrows;
 import org.openmrs.module.BaseModuleActivator;
+import org.openmrs.module.DaemonToken;
+import org.openmrs.module.DaemonTokenAware;
 import org.openmrs.module.labonfhir.api.OpenElisManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,11 +23,13 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements ApplicationContextAware {
+public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements ApplicationContextAware, DaemonTokenAware {
 
 	private static final Logger log = LoggerFactory.getLogger(ISantePlusLabOnFHIRActivator.class);
 
-	private ApplicationContext applicationContext;
+	private static ApplicationContext applicationContext;
+
+	private static DaemonToken daemonToken;
 
 	@Autowired
 	private ISantePlusLabOnFHIRConfig config;
@@ -34,10 +37,13 @@ public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements
 	@Autowired
 	private OpenElisManager openElisManager;
 
+
 	@SneakyThrows
 	@Override
 	public void started() {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
+
+		openElisManager.setDaemonToken(daemonToken);
 
 		// subscribe to encounter creation events
 		if (config.isOpenElisEnabled()) {
@@ -59,5 +65,10 @@ public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public void setDaemonToken(DaemonToken token) {
+		this.daemonToken = token;
 	}
 }

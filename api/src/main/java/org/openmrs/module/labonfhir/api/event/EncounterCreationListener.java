@@ -9,7 +9,9 @@ import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.APIException;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
+import org.openmrs.module.DaemonToken;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.module.labonfhir.api.OpenElisFhirOrderHandler;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
@@ -22,7 +24,17 @@ import org.springframework.stereotype.Component;
 @Component("labEncounterListener")
 public class EncounterCreationListener implements EventListener {
 
-	 private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
+	private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
+
+	public DaemonToken getDaemonToken() {
+		return daemonToken;
+	}
+
+	public void setDaemonToken(DaemonToken daemonToken) {
+		this.daemonToken = daemonToken;
+	}
+
+	private DaemonToken daemonToken;
 
 	@Autowired
 	private ISantePlusLabOnFHIRConfig config;
@@ -37,7 +49,18 @@ public class EncounterCreationListener implements EventListener {
 	public void onMessage(Message message) {
 		log.trace("Received message {}", message);
 
-		if (message.getClass().isAssignableFrom(MapMessage.class)) {
+		Daemon.runInDaemonThread(() -> {
+			try {
+				processMessage(message);
+			}
+			catch (Exception e) {
+				log.error("Failed to update the user's last viewed patients property", e);
+			}
+		}, daemonToken);
+	}
+
+	public void processMessage(Message message) {
+		if(message instanceof MapMessage) {
 			MapMessage mapMessage = (MapMessage) message;
 
 			String uuid;
@@ -67,6 +90,7 @@ public class EncounterCreationListener implements EventListener {
 			// this is written this way so we can solve whether we can handle this encounter in one pass through the Obs
 			boolean openElisOrder = false;
 			boolean testOrder = false;
+
 			String orderDestinationUuid = config.getOrderDestinationConceptUuid();
 			String testOrderConceptUuid = config.getTestOrderConceptUuid();
 
