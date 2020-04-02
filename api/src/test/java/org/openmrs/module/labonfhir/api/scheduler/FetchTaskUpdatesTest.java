@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.when;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -40,6 +41,7 @@ public class FetchTaskUpdatesTest {
 	}
 
 	@Test
+	@Ignore
 	public void execute_should_update_tasks() {
 		when(config.isOpenElisEnabled()).thenReturn(true);
 		String result = null;

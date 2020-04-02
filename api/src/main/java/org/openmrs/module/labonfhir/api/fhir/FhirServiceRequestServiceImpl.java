@@ -5,7 +5,6 @@ import org.openmrs.Obs;
 import org.openmrs.module.fhir2.api.FhirServiceRequestService;
 import org.openmrs.module.fhir2.api.dao.FhirServiceRequestDao;
 import org.openmrs.module.fhir2.api.translators.ServiceRequestTranslator;
-import javax.inject.Inject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;

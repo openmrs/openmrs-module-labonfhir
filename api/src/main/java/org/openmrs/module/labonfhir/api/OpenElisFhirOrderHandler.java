@@ -10,10 +10,8 @@ import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.FhirReference;
 import org.openmrs.module.fhir2.FhirTask;
 import org.openmrs.module.fhir2.api.dao.FhirTaskDao;
-import org.openmrs.module.fhir2.api.translators.TaskTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
-import javax.inject.Inject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,9 +24,6 @@ public class OpenElisFhirOrderHandler {
 
 	@Autowired
 	private FhirTaskDao taskDao;
-
-	@Autowired
-	private TaskTranslator taskTranslator;
 
 	public void createOrder(Encounter encounter) throws OrderCreationException {
 		AtomicReference<Obs> orderObs = new AtomicReference<>();
@@ -68,9 +63,6 @@ public class OpenElisFhirOrderHandler {
 		newTask.setForReference(forReference);
 		newTask.setOwnerReference(ownerRef);
 		newTask.setEncounterReference(encounterRef);
-
-		// Not needed due to use of `owner` element
-		// task.getMeta().addTag("http://fhir.isanteplus.com/R4/ext/lab-destination-valueset", "OpenElis", "OpenElis");
 
 		// Save the new Task Resource
 		try {

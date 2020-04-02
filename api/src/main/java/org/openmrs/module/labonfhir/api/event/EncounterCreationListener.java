@@ -14,13 +14,15 @@ import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.module.labonfhir.api.OpenElisFhirOrderHandler;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component("labEncounterListener")
 public class EncounterCreationListener implements EventListener {
 
-	// private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
+	 private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
 
 	@Autowired
 	private ISantePlusLabOnFHIRConfig config;
@@ -33,7 +35,7 @@ public class EncounterCreationListener implements EventListener {
 
 	@Override
 	public void onMessage(Message message) {
-		//log.trace("Received message {}", message);
+		log.trace("Received message {}", message);
 
 		if (message.getClass().isAssignableFrom(MapMessage.class)) {
 			MapMessage mapMessage = (MapMessage) message;
@@ -41,10 +43,10 @@ public class EncounterCreationListener implements EventListener {
 			String uuid;
 			try {
 				uuid = mapMessage.getString("uuid");
-				//log.debug("Handling encounter {}", uuid);
+				log.debug("Handling encounter {}", uuid);
 			}
 			catch (JMSException e) {
-				//log.error("Exception caught while trying to get encounter uuid for event", e);
+				log.error("Exception caught while trying to get encounter uuid for event", e);
 				return;
 			}
 
@@ -55,10 +57,10 @@ public class EncounterCreationListener implements EventListener {
 			Encounter encounter;
 			try {
 				encounter = encounterService.getEncounterByUuid(uuid);
-				//log.trace("Fetched encounter {}", encounter);
+				log.trace("Fetched encounter {}", encounter);
 			}
 			catch (APIException e) {
-				//log.error("Exception caught while trying to load encounter {}", uuid, e);
+				log.error("Exception caught while trying to load encounter {}", uuid, e);
 				return;
 			}
 
@@ -89,17 +91,16 @@ public class EncounterCreationListener implements EventListener {
 			}
 
 			// If matching orders found, create them from the encounter
-			//if (openElisOrder && testOrder) {
-			if(true) {
-				//log.trace("Found order(s) for encounter {}", encounter);
+			if (openElisOrder && testOrder) {
+				log.trace("Found order(s) for encounter {}", encounter);
 				try {
 					handler.createOrder(encounter);
 				}
 				catch (OrderCreationException e) {
-					//log.error("An exception occurred while trying to create the order for encounter {}", encounter, e);
+					log.error("An exception occurred while trying to create the order for encounter {}", encounter, e);
 				}
 			} else {
-				//log.trace("No orders found for encounter {}", encounter);
+				log.trace("No orders found for encounter {}", encounter);
 			}
 		}
 	}
