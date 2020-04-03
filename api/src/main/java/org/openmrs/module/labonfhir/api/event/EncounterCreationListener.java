@@ -88,31 +88,31 @@ public class EncounterCreationListener implements EventListener {
 			}
 
 			// this is written this way so we can solve whether we can handle this encounter in one pass through the Obs
-			boolean openElisOrder = false;
-			boolean testOrder = false;
+			boolean openElisOrder = true;
+			boolean testOrder = true;
 
-			String orderDestinationUuid = config.getOrderDestinationConceptUuid();
-			String testOrderConceptUuid = config.getTestOrderConceptUuid();
+			// String orderDestinationUuid = config.getOrderDestinationConceptUuid();
+			// tring testOrderConceptUuid = config.getTestOrderConceptUuid();
 
 			// loop through obs to determine if encounter is a TestOrder and a OpenElis order
-			for (Obs obs : encounter.getObs()) {
-				if (openElisOrder && testOrder) {
-					break;
-				}
-
-				String obsConceptUuid = obs.getConcept().getUuid();
-				if (orderDestinationUuid.equals(obsConceptUuid)) {
-					if (!openElisOrder) {
-						if ("OpenElis".equalsIgnoreCase(obs.getValueText())) {
-							openElisOrder = true;
-						}
-					}
-				} else if (testOrderConceptUuid.equals(obsConceptUuid)) {
-					if (!testOrder) {
-						testOrder = true;
-					}
-				}
-			}
+//			for (Obs obs : encounter.getObs()) {
+//				if (openElisOrder && testOrder) {
+//					break;
+//				}
+//
+//				String obsConceptUuid = obs.getConcept().getUuid();
+//				if (orderDestinationUuid.equals(obsConceptUuid)) {
+//					if (!openElisOrder) {
+//						if ("OpenElis".equalsIgnoreCase(obs.getValueText())) {
+//							openElisOrder = true;
+//						}
+//					}
+//				} else if (testOrderConceptUuid.equals(obsConceptUuid)) {
+//					if (!testOrder) {
+//						testOrder = true;
+//					}
+//				}
+//			}
 
 			// If matching orders found, create them from the encounter
 			if (openElisOrder && testOrder) {

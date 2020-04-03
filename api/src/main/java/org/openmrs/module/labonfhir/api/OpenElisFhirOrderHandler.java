@@ -29,7 +29,8 @@ public class OpenElisFhirOrderHandler {
 		AtomicReference<Obs> orderObs = new AtomicReference<>();
 
 		// Filter and Sort Obs that are Test Orders
-		encounter.getObs().stream().filter(config.isTestOrder()).findFirst().ifPresent(orderObs::set);
+		//encounter.getObs().stream().filter(config.isTestOrder()).findFirst().ifPresent(orderObs::set);
+		encounter.getObs().stream().findFirst().ifPresent(orderObs::set);
 
 		if (orderObs.get() == null) {
 			throw new OrderCreationException("Could not find order for encounter " + encounter);

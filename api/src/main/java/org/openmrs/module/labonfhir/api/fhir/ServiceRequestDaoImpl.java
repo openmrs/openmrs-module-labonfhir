@@ -27,8 +27,8 @@ public class ServiceRequestDaoImpl implements FhirServiceRequestDao<Obs> {
 	@Override
 	public Obs getServiceRequestByUuid(String uuid) {
 		return (Obs) sessionFactory.getCurrentSession().createCriteria(Obs.class)
-				.createAlias("concept", "c",
-						JoinType.INNER_JOIN, eq("c.uuid", config.getTestOrderConceptUuid()))
+//				.createAlias("concept", "c",
+//						JoinType.INNER_JOIN, eq("c.uuid", config.getTestOrderConceptUuid()))
 				.add(eq("uuid", uuid)).add(eq("voided", false)).uniqueResult();
 	}
 }

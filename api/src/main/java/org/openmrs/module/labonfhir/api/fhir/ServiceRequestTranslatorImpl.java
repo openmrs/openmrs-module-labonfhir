@@ -34,7 +34,7 @@ public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTrans
 
 	@Override
 	public ServiceRequest toFhirResource(Obs obs) {
-		if (obs == null || obs.getConcept() == null || !obs.getConcept().getUuid().equals(config.getTestOrderConceptUuid())) {
+		if (obs == null || obs.getConcept() == null) { // || !obs.getConcept().getUuid().equals(config.getTestOrderConceptUuid())) {
 			return null;
 		}
 
