@@ -6,7 +6,6 @@ import javax.jms.Message;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Encounter;
-import org.openmrs.Obs;
 import org.openmrs.api.APIException;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.context.Daemon;
@@ -15,7 +14,6 @@ import org.openmrs.module.DaemonToken;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.module.labonfhir.api.OpenElisFhirOrderHandler;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -3,11 +3,9 @@ package org.openmrs.module.labonfhir.api.fhir;
 import static org.hibernate.criterion.Restrictions.eq;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.sql.JoinType;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir2.api.dao.FhirServiceRequestDao;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
