@@ -18,9 +18,9 @@
 	<url>https://wiki.openmrs.org/x/FQ4z</url>
 
 	<scm>
-		<connection>scm:git:git@github.com:ibacher/openmrs-module-labonfhir.git</connection>
-		<developerConnection>scm:git:git@github.com:ibacher/openmrs-module-labonfhir.git</developerConnection>
-		<url>https://github.com/ibacher/openmrs-module-labonfhir/</url>
+		<connection>scm:git:git@github.com:pmanko/openmrs-module-labonfhir.git</connection>
+		<developerConnection>scm:git:git@github.com:pmanko/openmrs-module-labonfhir.git</developerConnection>
+		<url>https://github.com/pmanko/openmrs-module-labonfhir/</url>
 	</scm>
 
 	<modules>

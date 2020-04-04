@@ -26,7 +26,8 @@ public class ISantePlusLabOnFHIRConfig {
 	AdministrationService administrationService;
 
 	public String getOpenElisUrl() {
-		return "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/";
+		//return "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/";
+		return "http://hapi.fhir.org/baseR4";
 	}
 
 	public String getTestOrderConceptUuid() {

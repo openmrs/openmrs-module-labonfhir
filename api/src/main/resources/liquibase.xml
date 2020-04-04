@@ -13,7 +13,7 @@
         for a list of supported elements and attributes
     -->
 
-    <changeSet id="create-openelis-pull-task-2020-03-24" author="pmanko" dbms="mysql">
+    <changeSet id="create-openelis-pull-task-2020-04-03" author="pmanko" dbms="mysql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*) FROM scheduler_task_config
@@ -21,17 +21,21 @@
                 And name = 'OpenELIS Pull Task'
             </sqlCheck>
         </preConditions>
-        <comment>Inserting Auto Close Visits Task into 'schedule_task_config' table</comment>
-<!--        <insert tableName="scheduler_task_config">-->
-<!--            <column name="name" value="OpenELIS Pull Task" />-->
-<!--            <column name="description" value="Updates relevant resources fetched from OpenELIS FHIR Server" />-->
-<!--            <column name="schedulable_class" value="org.openmrs.module.labonfhir.api.scheduler.FetchTaskUpdates" />-->
-<!--            <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss" />-->
-<!--            <column name="start_time" valueDate="2020-03-20T23:59:59" />-->
-<!--            <column name="repeat_interval" value="100000" />-->
-<!--            <column name="date_created" valueDate="CURRENT_TIMESTAMP" />-->
-<!--            <column name="created_by" value="1" />-->
-<!--            <column name="uuid" value="8c17b376-1a2v-11e1-a51a-00248140a5eb" />-->
-<!--        </insert>-->
+        <comment>Inserting FetchTaskUpdates Task into 'schedule_task_config' table</comment>
+        <insert tableName="scheduler_task_config">
+            <column name="name" value="OpenELIS Pull Task" />
+            <column name="description" value="Updates relevant resources fetched from OpenELIS FHIR Server" />
+            <column name="schedulable_class" value="org.openmrs.module.labonfhir.api.scheduler.FetchTaskUpdates" />
+            <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss" />
+            <column name="start_time" valueDate="now()" />
+            <column name="repeat_interval" value="30" />
+            <column name="date_created" valueDate="CURRENT_TIMESTAMP" />
+            <column name="created_by" value="1" />
+            <column name="start_on_startup" value="0"/>
+            <column name="started" value="0"/>
+            <column name="uuid" value="8c17b376-1a2v-11e1-a51a-00248140a5eb" />
+        </insert>
     </changeSet>
 </databaseChangeLog>
+
+
