@@ -19,7 +19,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hl7.fhir.instance.model.api.IBaseReference;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Task;
+import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.FhirTask;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
@@ -57,14 +59,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		}
 
 		try {
-			// TODO: Clean up / refactor
-			//     setFhirContext(appCtx.getBean(FhirContext.class));?
-//			if(((ApacheRestfulClientFactory) clientFactory).getFhirContext() == null) {
-//				context.setRestfulClientFactory(clientFactory);
-//				((ApacheRestfulClientFactory) clientFactory).setFhirContext(context);
-//			}
-
-//			IGenericClient client = clientFactory.getRes(config.getOpenElisUrl());
+			// TODO: Clean up
 			ctx = applicationContext.getBean(FhirContext.class);
 			((ApacheRestfulClientFactory)clientFactory).setFhirContext(ctx);
 			ctx.setRestfulClientFactory(clientFactory);
@@ -85,15 +80,24 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 //			log.info(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(requestBundle));
 
 
-			Bundle tasksToUpdate = client.search().forResource(Task.class).returnBundle(Bundle.class).execute();
+			Bundle tasksToUpdate = client.search().forResource(Task.class).where(Task.IDENTIFIER.hasSystemWithAnyCode(
+					FhirConstants.OPENMRS_URI+"/identifier")).returnBundle(Bundle.class).execute();
 
 			//client.transaction().withResources(Collections.singletonList(new IBaseReference().set))
 
 			for (Iterator resources = tasksToUpdate.getEntry().iterator(); resources.hasNext(); ) {
 				// Update task status and output
-				Bundle.BundleEntryResponseComponent res = (Bundle.BundleEntryResponseComponent)resources.next();
+				Task toSave = (Task)((Bundle.BundleEntryComponent)resources.next()).getResource();
+				String openmrs_uuid = toSave.getId();
 
-				// taskService.saveTask((Task) resources.next().getResource());
+				if(toSave.hasIdentifier()) {
+					Identifier id = toSave.getIdentifierFirstRep();
+					if(id.getSystem() == FhirConstants.OPENMRS_URI+"/identifier") {
+						openmrs_uuid = id.getValue();
+					}
+				}
+
+				taskService.updateTask(openmrs_uuid, toSave);
 			}
 		} catch (Exception e) {
 			log.error("ERROR executing FetchTaskUpdates : " + e.toString() + getStackTrace(e));
