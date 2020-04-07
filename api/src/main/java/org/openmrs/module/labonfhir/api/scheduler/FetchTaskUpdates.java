@@ -66,24 +66,8 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 			IGenericClient client = ctx.newRestfulGenericClient("http://hapi.fhir.org/baseR4");
 
-//			Bundle requestBundle = new Bundle();
-//
-//			requestBundle.setType(Bundle.BundleType.TRANSACTION);
-//
-//			Collection<String> taskUuids = getOpenelisTaskUuids();
-//			if(taskUuids != null && !taskUuids.isEmpty()) {
-//				for(String uuid : taskUuids) {
-//					requestBundle.addEntry().setRequest(new Bundle.BundleEntryRequestComponent().setMethod(Bundle.HTTPVerb.GET).setUrl(config.getOpenElisUrl()+"/Task/"+uuid));
-//				}
-//			}
-
-//			log.info(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(requestBundle));
-
-
 			Bundle tasksToUpdate = client.search().forResource(Task.class).where(Task.IDENTIFIER.hasSystemWithAnyCode(
-					FhirConstants.OPENMRS_URI+"/identifier")).returnBundle(Bundle.class).execute();
-
-			//client.transaction().withResources(Collections.singletonList(new IBaseReference().set))
+					FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER)).returnBundle(Bundle.class).execute();
 
 			for (Iterator resources = tasksToUpdate.getEntry().iterator(); resources.hasNext(); ) {
 				// Update task status and output
@@ -92,22 +76,25 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 				if(toSave.hasIdentifier()) {
 					Identifier id = toSave.getIdentifierFirstRep();
-					if(id.getSystem() == FhirConstants.OPENMRS_URI+"/identifier") {
+					if(id.getSystem() == FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER) {
 						openmrs_uuid = id.getValue();
 					}
 				}
 
-				taskService.updateTask(openmrs_uuid, toSave);
+				if(toSave.hasOutput()) {
+					// Handle Diagnostic Report?
+				}
+				try{
+					taskService.updateTask(openmrs_uuid, toSave);
+				} catch (Exception e) {
+					log.error("Could not save task " + openmrs_uuid + ":" + e.toString() + getStackTrace(e));
+				}
 			}
 		} catch (Exception e) {
 			log.error("ERROR executing FetchTaskUpdates : " + e.toString() + getStackTrace(e));
 		}
 
 		super.startExecuting();
-
-		// Query OpenELIS for tasks that match the set of UUIDS
-		// Create a bundle request component for each task you request
-
 	}
 
 	@Override

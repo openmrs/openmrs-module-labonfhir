@@ -6,6 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import org.openmrs.Obs;
 import org.openmrs.api.AdministrationService;
 
+import org.openmrs.module.fhir2.FhirConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,7 @@ public class ISantePlusLabOnFHIRConfig {
 	AdministrationService administrationService;
 
 	public String getOpenElisUrl() {
-		//return "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/";
+		//return GP_OPENELIS_URL
 		return "http://hapi.fhir.org/baseR4";
 	}
 
