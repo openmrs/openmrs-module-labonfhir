@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
+import org.openmrs.BaseOpenmrsObject;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.api.db.DAOException;
@@ -35,17 +36,14 @@ public class OpenElisFhirOrderHandler {
 			throw new OrderCreationException("Could not find order for encounter " + encounter);
 		}
 
-		// Create basedOn Reference to Order/ServiceRequest
-		Reference basedOnRef = new Reference().setReference(orderObs.get().getUuid()).setType(FhirConstants.SERVICE_REQUEST);
+		// Create References
+		Reference basedOnRef = newReference(orderObs.get().getUuid(), FhirConstants.SERVICE_REQUEST);
 
-		// Create for Reference
-		Reference forReference = new Reference().setType(FhirConstants.PATIENT).setReference(encounter.getPatient().getUuid());
+		Reference forReference = newReference(encounter.getPatient().getUuid(), FhirConstants.PATIENT);
 
-		// Create owner Reference
-		Reference ownerRef = new Reference().setType(FhirConstants.PATIENT).setReference(config.getOpenElisUserUuid());
+		Reference ownerRef = newReference(config.getOpenElisUserUuid(), FhirConstants.PRACTITIONER);
 
-		// Create encounter Reference
-		Reference encounterRef = new Reference().setType(FhirConstants.ENCOUNTER).setReference(encounter.getUuid());
+		Reference encounterRef = newReference(encounter.getUuid(), FhirConstants.ENCOUNTER);
 
 		// Create Task Resource for given Order
 		Task newTask = new Task();
@@ -63,4 +61,9 @@ public class OpenElisFhirOrderHandler {
 			throw new OrderCreationException("Exception occurred while creating task for order " + orderObs.get().getUuid(), e);
 		}
 	}
+
+	private Reference newReference(String uuid, String type) {
+		return new Reference().setReference(type+"/"+uuid).setType(type);
+	}
+
 }
