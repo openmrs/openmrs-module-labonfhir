@@ -2,9 +2,11 @@ package org.openmrs.module.labonfhir.api.scheduler;
 
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import ca.uhn.fhir.context.FhirContext;
@@ -53,7 +55,12 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	public void execute() {
 		FhirContext ctx = null;
 
-		applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
+		try {
+			applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
+		} catch (Exception e) {
+			// return;
+		}
+
 		if (!config.isOpenElisEnabled()) {
 			return;
 		}
@@ -64,32 +71,12 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			((ApacheRestfulClientFactory)clientFactory).setFhirContext(ctx);
 			ctx.setRestfulClientFactory(clientFactory);
 
-			IGenericClient client = ctx.newRestfulGenericClient("http://hapi.fhir.org/baseR4");
+			IGenericClient client = ctx.newRestfulGenericClient(config.getOpenElisUrl());
 
 			Bundle tasksToUpdate = client.search().forResource(Task.class).where(Task.IDENTIFIER.hasSystemWithAnyCode(
 					FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER)).returnBundle(Bundle.class).execute();
 
-			for (Iterator resources = tasksToUpdate.getEntry().iterator(); resources.hasNext(); ) {
-				// Update task status and output
-				Task toSave = (Task)((Bundle.BundleEntryComponent)resources.next()).getResource();
-				String openmrs_uuid = toSave.getId();
-
-				if(toSave.hasIdentifier()) {
-					Identifier id = toSave.getIdentifierFirstRep();
-					if(id.getSystem() == FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER) {
-						openmrs_uuid = id.getValue();
-					}
-				}
-
-				if(toSave.hasOutput()) {
-					// Handle Diagnostic Report?
-				}
-				try{
-					taskService.updateTask(openmrs_uuid, toSave);
-				} catch (Exception e) {
-					log.error("Could not save task " + openmrs_uuid + ":" + e.toString() + getStackTrace(e));
-				}
-			}
+			Collection<Task> updatedTasks = updateTasksInBundle(tasksToUpdate);
 		} catch (Exception e) {
 			log.error("ERROR executing FetchTaskUpdates : " + e.toString() + getStackTrace(e));
 		}
@@ -104,18 +91,30 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		this.stopExecuting();
 	}
 
-	private Collection<String> getOpenelisTaskUuids() {
-		// ReferenceParam ownerRef = new ReferenceParam().setValue(FhirConstants.PRACTITIONER + "/" + config.getOpenElisUserUuid());
+	public Collection<Task> updateTasksInBundle(Bundle taskBundle) {
+		List<Task> updatedTasks = new ArrayList<>();
 
-		TokenOrListParam status = new TokenOrListParam().add(new TokenParam().setValue(FhirTask.TaskStatus.ACCEPTED.toString())).add(new TokenParam().setValue(FhirTask.TaskStatus.REQUESTED.toString()));
+		for (Iterator tasks = taskBundle.getEntry().iterator(); tasks.hasNext(); ) {
+			// Update task status and output
+			Task openelisTask = (Task)((Bundle.BundleEntryComponent)tasks.next()).getResource();
 
-		Collection<Task> openelisTasks = taskService.searchForTasks(null, null, status, null);
+			String openmrsTaskUuid = openelisTask.getBasedOnFirstRep().getReferenceElement().getIdPart();
+			Task openmrsTask = taskService.getTaskByUuid(openmrsTaskUuid);
 
-		if(!openelisTasks.isEmpty()){
-			return openelisTasks.stream().map(Task::getId).collect(Collectors.toList());
-		} else {
-			return Collections.EMPTY_LIST;
+			// Handle status
+			openelisTask.setStatus(openelisTask.getStatus());
+
+			if(openelisTask.hasOutput()) {
+				openmrsTask.setOutput(openelisTask.getOutput());
+			}
+
+			try{
+				updatedTasks.add(taskService.updateTask(openmrsTaskUuid, openmrsTask));
+			} catch (Exception e) {
+				log.error("Could not save task " + openmrsTaskUuid + ":" + e.toString() + getStackTrace(e));
+			}
 		}
+		return updatedTasks;
 	}
 
 	@Override
