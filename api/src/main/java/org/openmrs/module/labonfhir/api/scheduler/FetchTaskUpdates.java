@@ -19,12 +19,14 @@ import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.hl7.fhir.instance.model.api.IBaseReference;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.FhirTask;
+import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.scheduler.tasks.AbstractTask;
@@ -49,8 +51,13 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	private IRestfulClientFactory clientFactory;
 
 	@Autowired
+	CloseableHttpClient httpClient;
+
+	@Autowired
 	private FhirTaskService taskService;
 
+	@Autowired
+	private FhirDiagnosticReportService diagnosticReportService;
 	@Override
 	public void execute() {
 		FhirContext ctx = null;
@@ -69,6 +76,8 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			// TODO: Clean up
 			ctx = applicationContext.getBean(FhirContext.class);
 			((ApacheRestfulClientFactory)clientFactory).setFhirContext(ctx);
+
+			clientFactory.setHttpClient(httpClient);
 			ctx.setRestfulClientFactory(clientFactory);
 
 			IGenericClient client = ctx.newRestfulGenericClient(config.getOpenElisUrl());
@@ -98,14 +107,15 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			// Update task status and output
 			Task openelisTask = (Task)((Bundle.BundleEntryComponent)tasks.next()).getResource();
 
-			String openmrsTaskUuid = openelisTask.getBasedOnFirstRep().getReferenceElement().getIdPart();
+			String openmrsTaskUuid = openelisTask.getIdentifierFirstRep().getValue();
 			Task openmrsTask = taskService.getTaskByUuid(openmrsTaskUuid);
 
 			// Handle status
-			openelisTask.setStatus(openelisTask.getStatus());
+			openmrsTask.setStatus(openelisTask.getStatus());
 
 			if(openelisTask.hasOutput()) {
 				openmrsTask.setOutput(openelisTask.getOutput());
+				updateOutput(openelisTask.getOutput());
 			}
 
 			try{
@@ -115,6 +125,17 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			}
 		}
 		return updatedTasks;
+	}
+
+	private void updateOutput(List<Task.TaskOutputComponent> output) {
+		if(!output.isEmpty())
+		{
+			for(Iterator outputRefI = output.stream().iterator(); outputRefI.hasNext(); ) {
+				Task.TaskOutputComponent outputRef = (Task.TaskOutputComponent) outputRefI.next();
+				String uuid = outputRef.getValue().toString();
+				diagnosticReportService.getDiagnosticReportByUuid(uuid);
+			}
+		}
 	}
 
 	@Override

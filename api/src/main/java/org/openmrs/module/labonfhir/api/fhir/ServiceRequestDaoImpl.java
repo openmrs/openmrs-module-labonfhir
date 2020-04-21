@@ -3,6 +3,7 @@ package org.openmrs.module.labonfhir.api.fhir;
 import static org.hibernate.criterion.Restrictions.eq;
 
 import org.hibernate.SessionFactory;
+import org.hibernate.sql.JoinType;
 import org.openmrs.Obs;
 import org.openmrs.module.fhir2.api.dao.FhirServiceRequestDao;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
@@ -25,8 +26,7 @@ public class ServiceRequestDaoImpl implements FhirServiceRequestDao<Obs> {
 	@Override
 	public Obs getServiceRequestByUuid(String uuid) {
 		return (Obs) sessionFactory.getCurrentSession().createCriteria(Obs.class)
-//				.createAlias("concept", "c",
-//						JoinType.INNER_JOIN, eq("c.uuid", config.getTestOrderConceptUuid()))
+				.createAlias("concept", "c", JoinType.INNER_JOIN/*, eq("c.uuid", config.getTestOrderConceptUuid())*/)
 				.add(eq("uuid", uuid)).add(eq("voided", false)).uniqueResult();
 	}
 }

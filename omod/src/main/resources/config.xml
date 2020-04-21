@@ -65,11 +65,26 @@
 		<description>The URL for the OpenELIS system to communicate with</description>
 		<defaultValue>https://testapi.openelisci.org:8444/hapi-fhir-jpaserver</defaultValue>
 	</globalProperty>
-
 	<globalProperty>
 		<property>@MODULE_ID@.openElisUserUuid</property>
 		<description>UUID for the service user that represents OpenELIS</description>
 		<defaultValue>f9badd80-ab76-11e2-9e96-0800200c9a66</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.keystorePath</property>
+		<description>Path to keystore for HttpClient</description>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.keystorePass</property>
+		<description>Keystore password</description>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.truststorePath</property>
+		<description>Path to truststore for HttpClient</description>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.truststorePass</property>
+		<description>Truststore password</description>
 	</globalProperty>
 </module>
 

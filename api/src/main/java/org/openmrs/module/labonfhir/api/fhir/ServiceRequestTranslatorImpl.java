@@ -41,9 +41,11 @@ public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTrans
 		ServiceRequest serviceRequest = new ServiceRequest();
 
 		serviceRequest.setId(obs.getUuid());
-		serviceRequest.setStatus(determineServiceRequestStatus(obs.getUuid()));
-		serviceRequest.setCode(conceptTranslator.toFhirResource(obs.getValueCoded()));
+		serviceRequest.setCode(conceptTranslator.toFhirResource(obs.getConcept()));
 		serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
+
+		Collection<Task> serviceRequestTasks = taskService.getTasksByBasedOn(ServiceRequest.class, serviceRequest.getId());
+		serviceRequest.setStatus(determineServiceRequestStatus(obs.getUuid(), serviceRequestTasks));
 
 		if (obs.getEncounter() != null) {
 			Encounter encounter = obs.getEncounter();
@@ -58,16 +60,18 @@ public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTrans
 			}
 		}
 
-		if (obs.getPerson() != null && Patient.class.isAssignableFrom(obs.getPerson().getClass())) {
+		if (obs.getPerson() != null && obs.getPerson().getIsPatient() && false) {
+			// TODO: Figure out why I can't cast this to Patient
 			serviceRequest.setSubject(createPatientReference((Patient) obs.getPerson()));
+		} else if(!serviceRequestTasks.isEmpty()) {
+			// fall back on Task
+			serviceRequest.setSubject(serviceRequestTasks.iterator().next().getFor());
 		}
 
 		return serviceRequest;
 	}
 
-	protected ServiceRequest.ServiceRequestStatus determineServiceRequestStatus(String orderUuid) {
-		Collection<Task> serviceRequestTasks = taskService.getTasksByBasedOn(ServiceRequest.class, orderUuid);
-
+	protected ServiceRequest.ServiceRequestStatus determineServiceRequestStatus(String orderUuid, Collection<Task> serviceRequestTasks) {
 		ServiceRequest.ServiceRequestStatus serviceRequestStatus = ServiceRequest.ServiceRequestStatus.UNKNOWN;
 
 		if (serviceRequestTasks.size() != 1) {
