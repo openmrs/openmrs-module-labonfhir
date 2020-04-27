@@ -84,20 +84,10 @@ public class ISantePlusLabOnFHIRConfig implements ApplicationContextAware {
 
 	@Bean
 	public CloseableHttpClient httpClient() throws Exception {
-//		CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(sslConnectionSocketFactory()).build();
-//		HttpGet httpget = new HttpGet("https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/fhir");
-//
-//		FhirContext ctx = applicationContext.getBean(FhirContext.class);
-//		IRestfulClientFactory clientFactory = applicationContext.getBean(IRestfulClientFactory.class);
-//		ctx.setRestfulClientFactory(clientFactory);
-//		((ApacheRestfulClientFactory)clientFactory).setFhirContext(ctx);
-//		clientFactory.setHttpClient(client);
-//
-//		IGenericClient genClient = ctx.newRestfulGenericClient(this.getOpenElisUrl());
-//
-//		Bundle tasksToUpdate = genClient.search().forResource(Task.class).returnBundle(Bundle.class).execute();
+		CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(sslConnectionSocketFactory()).build();
 
-		return HttpClients.createSystem();
+		// return HttpClients.createSystem();
+		return client;
 	}
 
 	public SSLConnectionSocketFactory sslConnectionSocketFactory() throws Exception {
