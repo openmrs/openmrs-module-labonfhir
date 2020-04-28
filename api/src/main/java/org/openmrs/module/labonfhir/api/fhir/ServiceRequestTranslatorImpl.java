@@ -9,6 +9,7 @@ import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
+import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.translators.ConceptTranslator;
 import org.openmrs.module.fhir2.api.translators.ServiceRequestTranslator;
@@ -32,6 +33,9 @@ public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTrans
 	@Autowired
 	private FhirTaskService taskService;
 
+	@Autowired
+	private ConceptService conceptService;
+
 	@Override
 	public ServiceRequest toFhirResource(Obs obs) {
 		if (obs == null || obs.getConcept() == null) { // || !obs.getConcept().getUuid().equals(config.getTestOrderConceptUuid())) {
@@ -41,7 +45,9 @@ public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTrans
 		ServiceRequest serviceRequest = new ServiceRequest();
 
 		serviceRequest.setId(obs.getUuid());
-		serviceRequest.setCode(conceptTranslator.toFhirResource(obs.getConcept()));
+
+		serviceRequest.setCode(conceptTranslator.toFhirResource(obs.getValueCoded()));
+
 		serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
 
 		Collection<Task> serviceRequestTasks = taskService.getTasksByBasedOn(ServiceRequest.class, serviceRequest.getId());

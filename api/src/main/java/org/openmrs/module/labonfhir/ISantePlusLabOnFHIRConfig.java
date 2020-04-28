@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
 @Configuration
 public class ISantePlusLabOnFHIRConfig implements ApplicationContextAware {
 	// https://wiki.openmrs.org/display/docs/Setting+and+Reading+Global+Properties?src=contextnavpagetreemode
-	public static final String GP_TEST_ORDER_CONCEPT_UUID = "labonfihr.testsOrderedConceptUuid";
+	public static final String GP_TEST_ORDER_CONCEPT_UUID = "labonfhir.testsOrderedConceptUuid";
 
 	public static final String GP_ORDER_DESTINATION_CONCEPT_UUID = "labonfhir.orderDestinationConceptUuid";
 

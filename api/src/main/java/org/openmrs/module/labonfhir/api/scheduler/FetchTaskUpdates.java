@@ -30,6 +30,7 @@ import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.module.fhir2.FhirConstants;
@@ -37,6 +38,7 @@ import org.openmrs.module.fhir2.FhirTask;
 import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
 import org.openmrs.module.fhir2.api.FhirObservationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
+import org.openmrs.module.fhir2.api.translators.ObservationReferenceTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.scheduler.tasks.AbstractTask;
 import org.springframework.beans.BeansException;
@@ -72,6 +74,9 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 	@Autowired
 	FhirObservationService observationService;
+
+	@Autowired
+	ObservationReferenceTranslator observationReferenceTranslator;
 
 	@Override
 	public void execute() {
@@ -132,7 +137,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 				// Only update if matching OpenMRS Task found
 				if(openmrsTask != null) {
 					// Handle status
-					// openmrsTask.setStatus(openelisTask.getStatus());
+					openmrsTask.setStatus(openelisTask.getStatus());
 
 					// Handle output
 					if (openelisTask.hasOutput()) {
@@ -151,7 +156,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	}
 
 	private List<Task.TaskOutputComponent> updateOutput(List<Task.TaskOutputComponent> output) {
-		List<Task.TaskOutputComponent> outputList = Collections.EMPTY_LIST;
+		List<Task.TaskOutputComponent> outputList = new ArrayList<>();
 
 		if(!output.isEmpty())
 		{
@@ -164,7 +169,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 				// Set UUIDs for openmrs and openelis DiagnosticReports
 				String openelisUuid = ((Reference) outputRef.getValue()).getReferenceElement().getIdPart();
-				String openmrsUuid = client.getServerBase() + "/" + openelisUuid;
+				String openmrsUuid = "OpenELIS/" + openelisUuid;
 
 				// Get Diagnostic Report and associated Observations (using include)
 				Bundle diagnosticReportBundle = client.search().forResource(DiagnosticReport.class)
@@ -175,31 +180,39 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 				DiagnosticReport diagnosticReport = (DiagnosticReport) diagnosticReportBundle.getEntryFirstRep()
 						.getResource();
 
-				List<Observation> results = diagnosticReport.getResult().stream().map(r -> (Observation) r.getResource())
+				Collection<Observation> results = diagnosticReport.getResult().stream().map(r -> (Observation) r.getResource())
 						.collect(Collectors.toList());
 
 				// Init empty list to hold OpenMRS versions of Observations in DiagnosticReport.result
-				List<Observation> openmrsResults = Collections.EMPTY_LIST;
+				List<Reference> openmrsResults = new ArrayList<>();
 
 				// Create / Update result Observations
 				for (Observation result : results) {
-					String openmrsObservationUuid = client.getServerBase() + "/" + result.getIdElement().getIdPart();
+					String openmrsObservationUuid = "OpenELIS/" + result.getIdElement().getIdPart();
+					try {
+						Observation openmrsObservation = observationService.getObservationByUuid(openmrsObservationUuid);
 
-					Observation openmrsObservation = observationService.getObservationByUuid(openmrsObservationUuid);
+						if (openmrsObservation == null) {
+							// Create
+							openmrsObservation = result.copy();
+							openmrsObservation.setId(openmrsObservationUuid);
+							openmrsObservation.setSubject(setSubjectReference(diagnosticReport));
 
-					if (openmrsObservation == null) {
-						// Create
-						openmrsObservation = result.copy();
-						openmrsObservation.setId(openmrsObservationUuid);
+							// Fix for missing Datetime
+							if (openmrsObservation.getEffectiveDateTimeType().isEmpty()) {
+								openmrsObservation.setEffective(new DateTimeType().setValue(new Date()));
+							}
 
-						// Fix for missing Datetime
-						if(openmrsObservation.getEffectiveDateTimeType().isEmpty()){
-							openmrsObservation.setEffective(new DateTimeType().setValue(new Date()));
+							openmrsObservation = observationService.saveObservation(openmrsObservation);
+						} else {
+							// Update
 						}
-					} else {
-						// Update
+
+						// TODO: Use existing reference if exists? Need a Resource service?
+						openmrsResults.add(new Reference().setType(FhirConstants.OBSERVATION).setReference(FhirConstants.OBSERVATION+"/"+openmrsObservation.getId()));
+					} catch (Exception e) {
+						log.error("Could not save observation " + openmrsObservationUuid);
 					}
-					openmrsResults.add(observationService.saveObservation(openmrsObservation));
 				}
 
 				// Create / Update Diagnostic Report
@@ -207,13 +220,19 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 				if (openmrsDiagnosticReport == null) {
 					// Create
-					openmrsDiagnosticReport = diagnosticReport.copy();
+					openmrsDiagnosticReport = new DiagnosticReport();
+
+					openmrsDiagnosticReport.setStatus(diagnosticReport.getStatus());
+					openmrsDiagnosticReport.setCode(diagnosticReport.getCode());
+					openmrsDiagnosticReport.setResult(openmrsResults);
+					openmrsDiagnosticReport.setSubject(setSubjectReference(diagnosticReport));
 					openmrsDiagnosticReport.setId(openmrsUuid);
+
 					diagnosticReportService.saveDiagnosticReport(openmrsDiagnosticReport);
 				} else {
 					// Update
-					diagnosticReport.copyValues(openmrsDiagnosticReport);
-					openmrsDiagnosticReport.setId(openmrsUuid);
+					openmrsDiagnosticReport.setStatus(diagnosticReport.getStatus());
+					// openmrsDiagnosticReport.setResult(openmrsResults);
 					diagnosticReportService
 							.updateDiagnosticReport(openmrsUuid, openmrsDiagnosticReport);
 				}
@@ -226,6 +245,20 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		}
 
 		return outputList;
+	}
+
+	private Reference setSubjectReference(DiagnosticReport diagnosticReport) {
+		List<Identifier> ids = ((Patient)diagnosticReport.getSubject().getResource()).getIdentifier()
+				.stream().filter(i -> i.getSystem().contains("isanteplus"))
+				.collect(Collectors.toList());
+
+		if(!ids.isEmpty()) {
+			return new Reference()
+					.setReference(FhirConstants.PATIENT + "/" + ids.get(0).getValue())
+					.setType(FhirConstants.PATIENT);
+		} else {
+			return null;
+		}
 	}
 
 	@Override

@@ -1,7 +1,10 @@
 package org.openmrs.module.labonfhir.api;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
@@ -26,18 +29,17 @@ public class OpenElisFhirOrderHandler {
 	private FhirTaskService taskService;
 
 	public void createOrder(Encounter encounter) throws OrderCreationException {
-		AtomicReference<Obs> orderObs = new AtomicReference<>();
-
-		// Filter and Sort Obs that are Test Orders
-		//encounter.getObs().stream().filter(config.isTestOrder()).findFirst().ifPresent(orderObs::set);
-		encounter.getObs().stream().findFirst().ifPresent(orderObs::set);
-
-		if (orderObs.get() == null) {
-			throw new OrderCreationException("Could not find order for encounter " + encounter);
-		}
-
 		// Create References
-		Reference basedOnRef = newReference(orderObs.get().getUuid(), FhirConstants.SERVICE_REQUEST);
+		List<Reference> basedOnRefs = encounter.getObs().stream().filter(config.isTestOrder()).map(obs -> {
+			AtomicReference<Obs> orderObs = new AtomicReference<>();
+			orderObs.set(obs);
+
+			if (orderObs.get() != null) {
+				return newReference(orderObs.get().getUuid(), FhirConstants.SERVICE_REQUEST);
+			} else {
+				return null;
+			}
+		}).collect(Collectors.toList());
 
 		Reference forReference = newReference(encounter.getPatient().getUuid(), FhirConstants.PATIENT);
 
@@ -49,7 +51,7 @@ public class OpenElisFhirOrderHandler {
 		Task newTask = new Task();
 		newTask.setStatus(Task.TaskStatus.REQUESTED);
 		newTask.setIntent(Task.TaskIntent.ORDER);
-		newTask.setBasedOn(Collections.singletonList(basedOnRef));
+		newTask.setBasedOn(basedOnRefs);
 		newTask.setFor(forReference);
 		newTask.setOwner(ownerRef);
 		newTask.setEncounter(encounterRef);
@@ -58,7 +60,7 @@ public class OpenElisFhirOrderHandler {
 		try {
 			taskService.saveTask(newTask);
 		} catch (DAOException e) {
-			throw new OrderCreationException("Exception occurred while creating task for order " + orderObs.get().getUuid(), e);
+			throw new OrderCreationException("Exception occurred while creating task for encounter " + encounter.getId());
 		}
 	}
 
