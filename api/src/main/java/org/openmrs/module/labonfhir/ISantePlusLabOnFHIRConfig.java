@@ -71,6 +71,8 @@ public class ISantePlusLabOnFHIRConfig implements ApplicationContextAware {
 
 	private static final String TEMP_DEFAULT_OPENELIS_URL = "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/fhir";
 
+	private static final String GP_DIAGNOSTIC_REPORT_CONCEPT_UUID = "labonfhir.diagnosticReportConceptUuid";
+
 	private static Log log = LogFactory.getLog(ISantePlusLabOnFHIRConfig.class);
 
 	private static ApplicationContext applicationContext;
@@ -127,6 +129,10 @@ public class ISantePlusLabOnFHIRConfig implements ApplicationContextAware {
 
 	public String getTestOrderConceptUuid() {
 		return administrationService.getGlobalProperty(GP_TEST_ORDER_CONCEPT_UUID);
+	}
+
+	public String getDiagnosticReportConceptUuid() {
+		return administrationService.getGlobalProperty(GP_DIAGNOSTIC_REPORT_CONCEPT_UUID);
 	}
 
 	public String getOrderDestinationConceptUuid() {
