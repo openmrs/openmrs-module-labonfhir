@@ -4,11 +4,8 @@ import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.apache.ApacheRestfulClientFactory;
@@ -22,23 +19,15 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.hibernate.SessionFactory;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.DiagnosticReport;
-import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Observation;
-import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
-import org.openmrs.Obs;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
 import org.openmrs.module.fhir2.api.FhirObservationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
-import org.openmrs.module.fhir2.api.dao.FhirDiagnosticReportDao;
 import org.openmrs.module.fhir2.api.dao.FhirObservationDao;
-import org.openmrs.module.fhir2.api.translators.DiagnosticReportTranslator;
 import org.openmrs.module.fhir2.api.translators.ObservationReferenceTranslator;
-import org.openmrs.module.fhir2.api.translators.ObservationTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.scheduler.tasks.AbstractTask;
 import org.springframework.beans.BeansException;
@@ -47,7 +36,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Setter(AccessLevel.PACKAGE)
@@ -128,7 +116,6 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		this.stopExecuting();
 	}
 
-	@Transactional
 	public Collection<Task> updateTasksInBundle(Bundle taskBundle) {
 		// List of tasks that have been updated
 		List<Task> updatedTasks = new ArrayList<>();
@@ -149,17 +136,17 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 					// Handle status
 					openmrsTask.setStatus(openelisTask.getStatus());
 
-					// Save Task
-					openmrsTask = taskService.updateTask(openmrsTaskUuid, openmrsTask);
 
 					// Handle output
-					if (openelisTask.hasOutput()) {
+					// TODO: Remove prevention of replication
+					if (!openmrsTask.hasOutput() && openelisTask.hasOutput()) {
 						// openmrsTask.setOutput(openelisTask.getOutput());
 						openmrsTask.setOutput(updateOutput(openelisTask.getOutput()));
 					}
 
 					// Save Task
-					taskService.saveTask(openmrsTask);
+					openmrsTask = taskService.updateTask(openmrsTaskUuid, openmrsTask);
+
 					updatedTasks.add(openmrsTask);
 				}
 			} catch (Exception e) {

@@ -33,7 +33,7 @@ public class DiagnosticReportDaoImpl implements FhirDiagnosticReportDao {
 
 	@Override
 	public Obs getObsGroupByUuid(String uuid) {
-		return (Obs) sessionFactory.getCurrentSession().createCriteria(Obs.class).createAlias("groupMembers", "group")
+		return (Obs) sessionFactory.getCurrentSession().createCriteria(Obs.class)
 				.add(eq("uuid", uuid)).uniqueResult();
 	}
 

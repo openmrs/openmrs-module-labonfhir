@@ -118,7 +118,9 @@ public class DiagnosticReportServiceImpl implements FhirDiagnosticReportService 
 		if(openelisDiagnosticReport.hasResult() && openelisDiagnosticReport.getResultFirstRep().getResource() != null) {
 			Observation openelisObservation = (Observation) openelisDiagnosticReport.getResultFirstRep().getResource();
 
-			openelisObservation.copyValues(openmrsObservation);
+			openmrsObservation.setCode(openelisObservation.getCode());
+			openmrsObservation.setStatus(openelisObservation.getStatus());
+			openmrsObservation.setValue(openelisObservation.getValue());
 
 			// Fix for missing Datetime
 			if (openmrsObservation.getEffectiveDateTimeType().isEmpty()) {
@@ -148,6 +150,7 @@ public class DiagnosticReportServiceImpl implements FhirDiagnosticReportService 
 
 		// Send to Dao
 		diagnosticReportDao.saveObsGroup(obsGroup);
+		observationDao.saveObs(obs);
 
 		return diagnosticReportTranslator.toFhirResource(obsGroup);
 	}
