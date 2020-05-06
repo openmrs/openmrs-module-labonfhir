@@ -2,9 +2,12 @@ package org.openmrs.module.labonfhir.api.fhir;
 
 import static org.hibernate.criterion.Restrictions.eq;
 
+import java.util.Collection;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.sql.JoinType;
 import org.openmrs.Obs;
+import org.openmrs.TestOrder;
 import org.openmrs.module.fhir2.api.dao.FhirServiceRequestDao;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +29,14 @@ public class ServiceRequestDaoImpl implements FhirServiceRequestDao<Obs> {
 	@Override
 	public Obs getServiceRequestByUuid(String uuid) {
 		return (Obs) sessionFactory.getCurrentSession().createCriteria(Obs.class)
-				.createAlias("concept", "c",
-						JoinType.INNER_JOIN, eq("c.uuid", config.getTestOrderConceptUuid()))
+				.createAlias("concept", "c", JoinType.INNER_JOIN, eq("c.uuid", config.getTestOrderConceptUuid()))
 				.add(eq("uuid", uuid)).add(eq("voided", false)).uniqueResult();
+	}
+
+	@Override
+	public Collection<Obs> searchForTestOrders() {
+		return sessionFactory.getCurrentSession().createCriteria(Obs.class)
+				.createAlias("concept", "c", JoinType.INNER_JOIN, eq("c.uuid", config.getTestOrderConceptUuid()))
+				.add(eq("voided", false)).list();
 	}
 }

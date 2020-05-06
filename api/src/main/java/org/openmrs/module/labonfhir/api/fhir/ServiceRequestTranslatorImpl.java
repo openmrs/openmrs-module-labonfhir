@@ -9,11 +9,13 @@ import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
+import org.openmrs.api.ConceptService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.translators.ConceptTranslator;
 import org.openmrs.module.fhir2.api.translators.ServiceRequestTranslator;
 import org.openmrs.module.fhir2.api.translators.impl.AbstractReferenceHandlingTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -31,18 +33,25 @@ public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTrans
 	@Autowired
 	private FhirTaskService taskService;
 
+	@Autowired
+	private ConceptService conceptService;
+
 	@Override
 	public ServiceRequest toFhirResource(Obs obs) {
-		if (obs == null || obs.getConcept() == null || !obs.getConcept().getUuid().equals(config.getTestOrderConceptUuid())) {
+		if (obs == null || obs.getConcept() == null) { // || !obs.getConcept().getUuid().equals(config.getTestOrderConceptUuid())) {
 			return null;
 		}
 
 		ServiceRequest serviceRequest = new ServiceRequest();
 
 		serviceRequest.setId(obs.getUuid());
-		serviceRequest.setStatus(determineServiceRequestStatus(obs.getUuid()));
+
 		serviceRequest.setCode(conceptTranslator.toFhirResource(obs.getValueCoded()));
+
 		serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
+
+		Collection<Task> serviceRequestTasks = taskService.getTasksByBasedOn(ServiceRequest.class, serviceRequest.getId());
+		serviceRequest.setStatus(determineServiceRequestStatus(obs.getUuid(), serviceRequestTasks));
 
 		if (obs.getEncounter() != null) {
 			Encounter encounter = obs.getEncounter();
@@ -57,16 +66,18 @@ public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTrans
 			}
 		}
 
-		if (obs.getPerson() != null && Patient.class.isAssignableFrom(obs.getPerson().getClass())) {
+		if (obs.getPerson() != null && obs.getPerson().getIsPatient() && false) {
+			// TODO: Figure out why I can't cast this to Patient
 			serviceRequest.setSubject(createPatientReference((Patient) obs.getPerson()));
+		} else if(!serviceRequestTasks.isEmpty()) {
+			// fall back on Task
+			serviceRequest.setSubject(serviceRequestTasks.iterator().next().getFor());
 		}
 
 		return serviceRequest;
 	}
 
-	protected ServiceRequest.ServiceRequestStatus determineServiceRequestStatus(String orderUuid) {
-		Collection<Task> serviceRequestTasks = taskService.getTasksByBasedOn(ServiceRequest.class, orderUuid);
-
+	protected ServiceRequest.ServiceRequestStatus determineServiceRequestStatus(String orderUuid, Collection<Task> serviceRequestTasks) {
 		ServiceRequest.ServiceRequestStatus serviceRequestStatus = ServiceRequest.ServiceRequestStatus.UNKNOWN;
 
 		if (serviceRequestTasks.size() != 1) {

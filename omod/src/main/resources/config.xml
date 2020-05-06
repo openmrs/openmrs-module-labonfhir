@@ -56,6 +56,11 @@
 		<defaultValue>1271AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</defaultValue>
 	</globalProperty>
 	<globalProperty>
+		<property>@MODULE_ID@.diagnosticReportConceptUuid</property>
+		<description>The uuid of the concept representing a DiagnosticReport</description>
+		<defaultValue>d7e0f5a6-786f-4ef9-aba4-074cd85b2143</defaultValue>
+	</globalProperty>
+	<globalProperty>
 		<property>@MODULE_ID@.orderDestinationConceptUuid</property>
 		<description>The uuid of the concept indicating the destination of the lab order</description>
 		<defaultValue>160632AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</defaultValue>
@@ -63,6 +68,28 @@
 	<globalProperty>
 		<property>@MODULE_ID@.openElisUrl</property>
 		<description>The URL for the OpenELIS system to communicate with</description>
+		<defaultValue>https://testapi.openelisci.org:8444/hapi-fhir-jpaserver</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.openElisUserUuid</property>
+		<description>UUID for the service user that represents OpenELIS</description>
+		<defaultValue>f9badd80-ab76-11e2-9e96-0800200c9a66</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.keystorePath</property>
+		<description>Path to keystore for HttpClient</description>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.keystorePass</property>
+		<description>Keystore password</description>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.truststorePath</property>
+		<description>Path to truststore for HttpClient</description>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.truststorePass</property>
+		<description>Truststore password</description>
 	</globalProperty>
 </module>
 

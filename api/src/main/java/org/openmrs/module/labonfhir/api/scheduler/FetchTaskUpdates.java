@@ -1,83 +1,194 @@
 package org.openmrs.module.labonfhir.api.scheduler;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.stream.Collectors;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.client.apache.ApacheRestfulClientFactory;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
-import ca.uhn.fhir.rest.param.ReferenceParam;
+import ca.uhn.fhir.rest.gclient.TokenClientParam;
 import lombok.AccessLevel;
 import lombok.Setter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.hibernate.SessionFactory;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.module.fhir2.FhirConstants;
-import org.openmrs.module.fhir2.FhirReference;
-import org.openmrs.module.fhir2.FhirTask;
+import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
+import org.openmrs.module.fhir2.api.FhirObservationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
-import org.openmrs.module.fhir2.api.dao.FhirTaskDao;
-import org.openmrs.module.fhir2.api.translators.TaskTranslator;
+import org.openmrs.module.fhir2.api.dao.FhirObservationDao;
+import org.openmrs.module.fhir2.api.translators.ObservationReferenceTranslator;
 import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
 import org.openmrs.scheduler.tasks.AbstractTask;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 @Component
 @Setter(AccessLevel.PACKAGE)
-public class FetchTaskUpdates extends AbstractTask {
+public class FetchTaskUpdates extends AbstractTask implements ApplicationContextAware {
 
-	@Autowired
-	private IRestfulClientFactory clientFactory;
+	private static Log log = LogFactory.getLog(FetchTaskUpdates.class);
+
+	private static ApplicationContext applicationContext;
+
+	private IGenericClient client;
 
 	@Autowired
 	private ISantePlusLabOnFHIRConfig config;
 
 	@Autowired
-	private FhirTaskDao taskDao;
+	private IRestfulClientFactory clientFactory;
 
 	@Autowired
-	private TaskTranslator taskTranslator;
+	CloseableHttpClient httpClient;
+
+	@Autowired
+	private FhirTaskService taskService;
+
+	@Autowired
+	private FhirDiagnosticReportService diagnosticReportService;
+
+	@Autowired
+	FhirObservationDao observationDao;
+
+	@Autowired
+	FhirObservationService observationService;
+
+	@Autowired
+	ObservationReferenceTranslator observationReferenceTranslator;
+
+	@Autowired
+	@Qualifier("sessionFactory")
+	SessionFactory sessionFactory;
 
 	@Override
 	public void execute() {
+		FhirContext ctx = null;
+
+		try {
+			applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
+		} catch (Exception e) {
+			// return;
+		}
+
 		if (!config.isOpenElisEnabled()) {
 			return;
 		}
 
-		IGenericClient client = clientFactory.newGenericClient(config.getOpenElisUrl());
-		Bundle requestBundle = new Bundle();
+		try {
+			// TODO: Clean up
+			ctx = applicationContext.getBean(FhirContext.class);
+			((ApacheRestfulClientFactory)clientFactory).setFhirContext(ctx);
 
-		// Query OpenELIS for tasks that match the set of UUIDS
-		// Create a bundle request component for each task you request
-		Collection<String> taskUuids = getOpenelisTaskUuids();
-		if(taskUuids != null && !taskUuids.isEmpty()) {
-			for(String uuid : taskUuids) {
-				requestBundle.addEntry().setRequest(new Bundle.BundleEntryRequestComponent().setMethod(Bundle.HTTPVerb.GET).setUrl(config.getOpenElisUrl()+"/Task/"+uuid));
+			clientFactory.setHttpClient(httpClient);
+			ctx.setRestfulClientFactory(clientFactory);
+
+			client = ctx.newRestfulGenericClient(config.getOpenElisUrl());
+
+			// Get List of Tasks that belong to this instance and update them
+			updateTasksInBundle(client.search().forResource(Task.class).where(Task.IDENTIFIER.hasSystemWithAnyCode(
+					FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER)).returnBundle(Bundle.class).execute());
+		} catch (Exception e) {
+			log.error("ERROR executing FetchTaskUpdates : " + e.toString() + getStackTrace(e));
+		}
+
+		super.startExecuting();
+	}
+
+	@Override
+	public void shutdown() {
+		log.debug("shutting down FetchTaskUpdates Task");
+
+		this.stopExecuting();
+	}
+
+	public Collection<Task> updateTasksInBundle(Bundle taskBundle) {
+		// List of tasks that have been updated
+		List<Task> updatedTasks = new ArrayList<>();
+
+ 		for (Iterator tasks = taskBundle.getEntry().iterator(); tasks.hasNext(); ) {
+			String openmrsTaskUuid = null;
+
+			try{
+				// Read incoming OpenElis task
+				Task openelisTask = (Task)((Bundle.BundleEntryComponent)tasks.next()).getResource();
+				openmrsTaskUuid = openelisTask.getIdentifierFirstRep().getValue();
+
+				// Find original openmrs task using Identifier
+				Task openmrsTask = taskService.getTaskByUuid(openmrsTaskUuid);
+
+				// Only update if matching OpenMRS Task found
+				if(openmrsTask != null) {
+					// Handle status
+					openmrsTask.setStatus(openelisTask.getStatus());
+
+					// Handle output
+					// TODO: Remove prevention of replication
+					if (!openmrsTask.hasOutput() && openelisTask.hasOutput()) {
+						// openmrsTask.setOutput(openelisTask.getOutput());
+						openmrsTask.setOutput(updateOutput(openelisTask.getOutput(), openmrsTask.getEncounter()));
+					}
+
+					// Save Task
+					openmrsTask = taskService.updateTask(openmrsTaskUuid, openmrsTask);
+
+					updatedTasks.add(openmrsTask);
+				}
+			} catch (Exception e) {
+				log.error("Could not save task " + openmrsTaskUuid + ":" + e.toString() + getStackTrace(e));
+			}
+		}
+		return updatedTasks;
+	}
+
+	private List<Task.TaskOutputComponent> updateOutput(List<Task.TaskOutputComponent> output, Reference encounterReference) {
+		List<Task.TaskOutputComponent> outputList = new ArrayList<>();
+
+		if (!output.isEmpty()) {
+			// Save each output entry
+			for (Iterator outputRefI = output.stream().iterator(); outputRefI.hasNext(); ) {
+				Task.TaskOutputComponent outputRef = (Task.TaskOutputComponent) outputRefI.next();
+				String openelisUuid = ((Reference) outputRef.getValue()).getReferenceElement().getIdPart();
+
+				// Get Diagnostic Report and associated Observations (using include)
+				Bundle diagnosticReportBundle = client.search().forResource(DiagnosticReport.class)
+						.where(new TokenClientParam("_id").exactly().code(openelisUuid))
+						.include(DiagnosticReport.INCLUDE_RESULT).include(DiagnosticReport.INCLUDE_SUBJECT)
+						.returnBundle(Bundle.class).execute();
+
+				DiagnosticReport diagnosticReport = (DiagnosticReport) diagnosticReportBundle.getEntryFirstRep()
+						.getResource();
+
+				diagnosticReport.setEncounter(encounterReference);
+
+				diagnosticReport = diagnosticReportService.saveDiagnosticReport(diagnosticReport);
+
+				outputList.add((new Task.TaskOutputComponent())
+						.setValue(new Reference()
+								.setType(FhirConstants.DIAGNOSTIC_REPORT)
+								.setReference(diagnosticReport.getId())));
 			}
 		}
 
-		Bundle outcomes = client.transaction().withBundle(requestBundle).encodedJson().execute();
-
-		for (Iterator resources = outcomes.getEntry().iterator(); resources.hasNext(); ) {
-
-			// Update task status and output
-			taskDao.saveTask(taskTranslator.toOpenmrsType((Task) resources.next()));
-
-		}
+		return outputList;
 	}
 
-	private Collection<String> getOpenelisTaskUuids() {
-		ReferenceParam ownerRef = new ReferenceParam().setValue(FhirConstants.PRACTITIONER + "/" + config.getOpenElisUserUuid());
-		Collection<FhirTask> openelisTasks = taskDao.searchForTasks(null, ownerRef, null, null);
-		if(!openelisTasks.isEmpty()){
-			return openelisTasks.stream().map(FhirTask::getUuid).collect(Collectors.toList());
-		} else {
-			return Collections.EMPTY_LIST;
-		}
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 	}
-
-
 }
