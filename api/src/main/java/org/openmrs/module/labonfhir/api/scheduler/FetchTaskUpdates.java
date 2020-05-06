@@ -136,12 +136,11 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 					// Handle status
 					openmrsTask.setStatus(openelisTask.getStatus());
 
-
 					// Handle output
 					// TODO: Remove prevention of replication
 					if (!openmrsTask.hasOutput() && openelisTask.hasOutput()) {
 						// openmrsTask.setOutput(openelisTask.getOutput());
-						openmrsTask.setOutput(updateOutput(openelisTask.getOutput()));
+						openmrsTask.setOutput(updateOutput(openelisTask.getOutput(), openmrsTask.getEncounter()));
 					}
 
 					// Save Task
@@ -156,7 +155,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		return updatedTasks;
 	}
 
-	private List<Task.TaskOutputComponent> updateOutput(List<Task.TaskOutputComponent> output) {
+	private List<Task.TaskOutputComponent> updateOutput(List<Task.TaskOutputComponent> output, Reference encounterReference) {
 		List<Task.TaskOutputComponent> outputList = new ArrayList<>();
 
 		if (!output.isEmpty()) {
@@ -173,6 +172,8 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 				DiagnosticReport diagnosticReport = (DiagnosticReport) diagnosticReportBundle.getEntryFirstRep()
 						.getResource();
+
+				diagnosticReport.setEncounter(encounterReference);
 
 				diagnosticReport = diagnosticReportService.saveDiagnosticReport(diagnosticReport);
 

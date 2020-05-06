@@ -127,6 +127,9 @@ public class DiagnosticReportServiceImpl implements FhirDiagnosticReportService 
 				openmrsObservation.setEffective(new DateTimeType().setValue(new Date()));
 			}
 
+			// Set Encounter from Task
+			openmrsObservation.setEncounter(openmrsDiagnosticReport.getEncounter());
+
 			// Resolve subject
 			if (openelisObservation.hasSubject() && openelisObservation.getSubject().getResource() != null) {
 				openmrsObservation.setSubject(setSubjectReference((Patient) openelisObservation.getSubject().getResource()));
