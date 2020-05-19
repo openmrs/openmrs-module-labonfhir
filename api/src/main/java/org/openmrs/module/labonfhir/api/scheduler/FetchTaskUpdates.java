@@ -23,6 +23,7 @@ import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.module.fhir2.FhirConstants;
+import org.openmrs.module.fhir2.FhirTask;
 import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
 import org.openmrs.module.fhir2.api.FhirObservationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
@@ -134,19 +135,20 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 				// Only update if matching OpenMRS Task found
 				if(openmrsTask != null) {
 					// Handle status
+					Task.TaskStatus oldStatus = openmrsTask.getStatus();
 					openmrsTask.setStatus(openelisTask.getStatus());
 
-					// Handle output
-					// TODO: Remove prevention of replication
-					if (!openmrsTask.hasOutput() && openelisTask.hasOutput()) {
-						// openmrsTask.setOutput(openelisTask.getOutput());
-						openmrsTask.setOutput(updateOutput(openelisTask.getOutput(), openmrsTask.getEncounter()));
+					// Save Task if status changed
+					if(!oldStatus.equals(openelisTask.getStatus())) {
+						// Handle output
+						// TODO: Remove prevention of replication
+						if (!openmrsTask.hasOutput() && openelisTask.hasOutput()) {
+							openmrsTask.setOutput(updateOutput(openelisTask.getOutput(), openmrsTask.getEncounter()));
+						}
+
+						openmrsTask = taskService.updateTask(openmrsTaskUuid, openmrsTask);
+						updatedTasks.add(openmrsTask);
 					}
-
-					// Save Task
-					openmrsTask = taskService.updateTask(openmrsTaskUuid, openmrsTask);
-
-					updatedTasks.add(openmrsTask);
 				}
 			} catch (Exception e) {
 				log.error("Could not save task " + openmrsTaskUuid + ":" + e.toString() + getStackTrace(e));

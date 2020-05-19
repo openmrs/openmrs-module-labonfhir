@@ -113,6 +113,9 @@ public class DiagnosticReportServiceImpl implements FhirDiagnosticReportService 
 			throw new Exception("Could not find DiagnosticReport Datatype");
 		}
 
+		// Encounter
+		openmrsDiagnosticReport.setEncounter(openelisDiagnosticReport.getEncounter());
+
 		// Create and init OpenMRS Observation
 		// ToDo - generalize not just for FirstRep
 		if(openelisDiagnosticReport.hasResult() && openelisDiagnosticReport.getResultFirstRep().getResource() != null) {
@@ -127,8 +130,8 @@ public class DiagnosticReportServiceImpl implements FhirDiagnosticReportService 
 				openmrsObservation.setEffective(new DateTimeType().setValue(new Date()));
 			}
 
-			// Set Encounter from Task
-			openmrsObservation.setEncounter(openmrsDiagnosticReport.getEncounter());
+			// Setm Encounter from Task
+			openmrsObservation.setEncounter(openelisDiagnosticReport.getEncounter());
 
 			// Resolve subject
 			if (openelisObservation.hasSubject() && openelisObservation.getSubject().getResource() != null) {
