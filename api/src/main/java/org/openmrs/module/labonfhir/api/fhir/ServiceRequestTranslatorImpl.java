@@ -38,20 +38,33 @@ public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTrans
 
 	@Override
 	public ServiceRequest toFhirResource(Obs obs) {
-		if (obs == null || obs.getConcept() == null) { // || !obs.getConcept().getUuid().equals(config.getTestOrderConceptUuid())) {
+		notNull(obs, "The Obs object should not be null");
+		
+		notNull(obs, "The Obs object needs to have a non-null Concept");
+
+		// TODO Handle wrong Obs concept better
+		if(!obs.getConcept().getUuid().equals(config.getTestOrderConceptUuid()))
 			return null;
-		}
 
 		ServiceRequest serviceRequest = new ServiceRequest();
 
+		Collection<Task> serviceRequestTasks = taskService.getTasksByBasedOn(ServiceRequest.class, serviceRequest.getId());
+
 		serviceRequest.setId(obs.getUuid());
+
+		serviceRequest.setStatus(determineServiceRequestStatus(obs.getUuid(), serviceRequestTasks));
 
 		serviceRequest.setCode(conceptTranslator.toFhirResource(obs.getValueCoded()));
 
 		serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
 
-		Collection<Task> serviceRequestTasks = taskService.getTasksByBasedOn(ServiceRequest.class, serviceRequest.getId());
-		serviceRequest.setStatus(determineServiceRequestStatus(obs.getUuid(), serviceRequestTasks));
+		if (obs.getPerson() != null && obs.getPerson().getIsPatient() && false) {
+			// TODO: Figure out why I can't cast this to Patient
+			serviceRequest.setSubject(createPatientReference((Patient) obs.getPerson()));
+		} else if(!serviceRequestTasks.isEmpty()) {
+			// fall back on Task
+			serviceRequest.setSubject(serviceRequestTasks.iterator().next().getFor());
+		}
 
 		if (obs.getEncounter() != null) {
 			Encounter encounter = obs.getEncounter();
@@ -66,13 +79,26 @@ public class ServiceRequestTranslatorImpl extends AbstractReferenceHandlingTrans
 			}
 		}
 
-		if (obs.getPerson() != null && obs.getPerson().getIsPatient() && false) {
-			// TODO: Figure out why I can't cast this to Patient
-			serviceRequest.setSubject(createPatientReference((Patient) obs.getPerson()));
-		} else if(!serviceRequestTasks.isEmpty()) {
-			// fall back on Task
-			serviceRequest.setSubject(serviceRequestTasks.iterator().next().getFor());
-		}
+		// TODO: Map Performer
+		// serviceRequest.setPerformer(Collections.singletonList(determineServiceRequestPerformer(order.getUuid())));
+		
+		// TODO: Figure out location of start/end dates
+		// serviceRequest
+		//         .setOccurrence(new Period().setStart(order.getEffectiveStartDate()).setEnd(order.getEffectiveStopDate()));
+		
+		serviceRequest.getMeta().setLastUpdated(obs.getDateChanged());
+		
+		// TODO: Determine if we need replaces or basedOn mapping
+		// if (order.getPreviousOrder() != null
+		//         && (order.getAction() == Order.Action.DISCONTINUE || order.getAction() == Order.Action.REVISE)) {
+		// 	serviceRequest.setReplaces((Collections.singletonList(createOrderReference(order.getPreviousOrder())
+		// 	        .setIdentifier(orderIdentifierTranslator.toFhirResource(order.getPreviousOrder())))));
+		// } else if (order.getPreviousOrder() != null && order.getAction() == Order.Action.RENEW) {
+		// 	serviceRequest.setBasedOn(Collections.singletonList(createOrderReference(order.getPreviousOrder())
+		// 	        .setIdentifier(orderIdentifierTranslator.toFhirResource(order.getPreviousOrder()))));
+		// }
+		
+
 
 		return serviceRequest;
 	}
