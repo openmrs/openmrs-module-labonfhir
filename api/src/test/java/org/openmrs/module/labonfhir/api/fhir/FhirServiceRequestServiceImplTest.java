@@ -38,7 +38,7 @@ import org.openmrs.module.fhir2.api.translators.PatientReferenceTranslator;
 import org.openmrs.module.fhir2.api.translators.PractitionerReferenceTranslator;
 import org.openmrs.module.fhir2.api.translators.impl.ServiceRequestTranslatorImpl;
 
-@RunWith(MockitoJUnitRunner.class)
+//@RunWith(MockitoJUnitRunner.class)
 public class FhirServiceRequestServiceImplTest {
 //	private static final String SERVICE_REQUEST_UUID = "4e4851c3-c265-400e-acc9-1f1b0ac7f9c4";
 //

@@ -58,7 +58,7 @@ public class OpenElisFhirOrderHandler {
 
 		// Save the new Task Resource
 		try {
-			taskService.saveTask(newTask);
+			taskService.create(newTask);
 		} catch (DAOException e) {
 			throw new OrderCreationException("Exception occurred while creating task for encounter " + encounter.getId());
 		}
