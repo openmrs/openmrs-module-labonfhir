@@ -79,8 +79,8 @@ public class FetchTaskUpdatesTest {
 		Bundle.BundleEntryComponent bec = new Bundle.BundleEntryComponent().setResource(openelisTask);
 
 		when(taskBundle.getEntry()).thenReturn(Collections.singletonList(bec));
-		when(taskService.getTaskByUuid(OPENMRS_TASK_UUID)).thenReturn(openelisTask);
-		when(taskService.updateTask(Matchers.eq(OPENMRS_TASK_UUID), Matchers.any(Task.class))).thenReturn(updatedOpenmrsTask);
+		when(taskService.get(OPENMRS_TASK_UUID)).thenReturn(openelisTask);
+		when(taskService.update(Matchers.eq(OPENMRS_TASK_UUID), Matchers.any(Task.class))).thenReturn(updatedOpenmrsTask);
 
 		// Collection<Task> result = updateTask.updateTasksInBundle(taskBundle);
 

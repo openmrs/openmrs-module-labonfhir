@@ -49,8 +49,9 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 	@Autowired
 	private ISantePlusLabOnFHIRConfig config;
-
+    
 	@Autowired
+	@Qualifier("labRestfulClientFactory")
 	private IRestfulClientFactory clientFactory;
 
 	@Autowired
@@ -129,7 +130,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 				openmrsTaskUuid = openelisTask.getIdentifierFirstRep().getValue();
 
 				// Find original openmrs task using Identifier
-				Task openmrsTask = taskService.getTaskByUuid(openmrsTaskUuid);
+				Task openmrsTask = taskService.get(openmrsTaskUuid);
 
 				// Only update if matching OpenMRS Task found
 				if(openmrsTask != null) {
@@ -144,7 +145,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 					}
 
 					// Save Task
-					openmrsTask = taskService.updateTask(openmrsTaskUuid, openmrsTask);
+					openmrsTask = taskService.update(openmrsTaskUuid, openmrsTask);
 
 					updatedTasks.add(openmrsTask);
 				}
@@ -175,7 +176,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 				diagnosticReport.setEncounter(encounterReference);
 
-				diagnosticReport = diagnosticReportService.saveDiagnosticReport(diagnosticReport);
+				diagnosticReport = diagnosticReportService.create(diagnosticReport);
 
 				outputList.add((new Task.TaskOutputComponent())
 						.setValue(new Reference()

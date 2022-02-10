@@ -153,7 +153,7 @@ public class ISantePlusLabOnFHIRConfig implements ApplicationContextAware {
 	}
 
 	public Practitioner getOpenElisPractitioner() {
-		return practitionerService.getPractitionerByUuid(getOpenElisUserUuid());
+		return practitionerService.get(getOpenElisUserUuid());
 	}
 
 	private KeyStore loadKeystore(String filePath) {
