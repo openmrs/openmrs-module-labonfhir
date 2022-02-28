@@ -1,30 +1,21 @@
-${moduleName}
-==========================
+# OpenMRS Laboratory Workflows Module
 
-Description
------------
-This is a very basic module which can be used as a starting point in creating a new module.
+## Overview
+This module provides support for FHIR-based communication between OpenMRS and a FHIR-enabled 
+Laboratory Information System (LIS) like OpenELIS.
 
-Building from Source
---------------------
-You will need to have Java 1.6+ and Maven 2.x+ installed.  Use the command 'mvn package' to 
-compile and package the module.  The .omod file will be in the omod/target folder.
+The laboratory workflows supported by this module are based on 
+[OpenHIE specifications](https://guides.ohie.org/arch-spec/introduction/laboratory-work-flows) and the 
+[FHIR Workflow Module](https://build.fhir.org/workflow-module.html) resources and communication patterns.  
 
-Alternatively you can add the snippet provided in the [Creating Modules](https://wiki.openmrs.org/x/cAEr) page to your 
-omod/pom.xml and use the mvn command:
+The technical and functional specification for the workflows supported by this module can be found in the following
+[FHIR Implementation Guide](https://build.fhir.org/ig/FHIR/ig-guidance/): https://i-tech-uw.github.io/laboratory-workflows-ig
 
-    mvn package -P deploy-web -D deploy.path="../../openmrs-1.8.x/webapp/src/main/webapp"
+## Building and Deploying
 
-It will allow you to deploy any changes to your web 
-resources such as jsp or js files without re-installing the module. The deploy path says 
-where OpenMRS is deployed.
+1. Build and create `.omod` file:
+```shell
+mvn clean package
+```
 
-Installation
-------------
-1. Build the module to produce the .omod file.
-2. Use the OpenMRS Administration > Manage Modules screen to upload and install the .omod file.
-
-If uploads are not allowed from the web (changable via a runtime property), you can drop the omod
-into the ~/.OpenMRS/modules folder.  (Where ~/.OpenMRS is assumed to be the Application 
-Data Directory that the running openmrs is currently using.)  After putting the file in there 
-simply restart OpenMRS/tomcat and the module will be loaded and started.
+2. Use omod file as part of an OpenMRS distribution. 

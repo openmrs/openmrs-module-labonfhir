@@ -11,7 +11,7 @@ import org.openmrs.api.EncounterService;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
-import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
+import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.OpenElisFhirOrderHandler;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ public class EncounterCreationListener implements EventListener {
 	private DaemonToken daemonToken;
 
 	@Autowired
-	private ISantePlusLabOnFHIRConfig config;
+	private LabOnFhirConfig config;
 
 	@Autowired
 	private EncounterService encounterService;

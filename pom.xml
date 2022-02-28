@@ -12,15 +12,16 @@
 	<artifactId>labonfhir</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>iSantePlus Lab on FHIR</name>
-	<description>A module to support the lab workflow in iSantePlus using FHIR</description>
+	<name>Lab on FHIR</name>
+	<description>A module to support lab order communication between OpenMRS and an LIS like OpenELIS using FHIR-based
+	Laboratory Workflows based on the OpenHIE Specifications.</description>
 
 	<url>https://wiki.openmrs.org/x/FQ4z</url>
 
 	<scm>
-		<connection>scm:git:git@github.com:pmanko/openmrs-module-labonfhir.git</connection>
-		<developerConnection>scm:git:git@github.com:pmanko/openmrs-module-labonfhir.git</developerConnection>
-		<url>https://github.com/pmanko/openmrs-module-labonfhir/</url>
+		<connection>scm:git:git@github.com:i-tech-uw/openmrs-module-labonfhir.git</connection>
+		<developerConnection>scm:git:git@github.com:i-tech-uw/openmrs-module-labonfhir.git</developerConnection>
+		<url>https://github.com/i-tech-uw/openmrs-module-labonfhir/</url>
 	</scm>
 
 	<modules>

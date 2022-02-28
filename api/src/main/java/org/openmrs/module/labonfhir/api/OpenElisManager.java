@@ -2,18 +2,13 @@ package org.openmrs.module.labonfhir.api;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.apache.commons.lang.StringUtils;
-import org.hl7.fhir.r4.model.Practitioner;
 import org.openmrs.Encounter;
 import org.openmrs.GlobalProperty;
 import org.openmrs.api.GlobalPropertyListener;
-import org.openmrs.api.ProviderService;
 import org.openmrs.event.Event;
 import org.openmrs.module.DaemonToken;
-import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
+import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.event.EncounterCreationListener;
 
 import org.slf4j.Logger;
@@ -39,12 +34,12 @@ public class OpenElisManager implements GlobalPropertyListener {
 
 	@Override
 	public boolean supportsPropertyName(String propertyName) {
-		return ISantePlusLabOnFHIRConfig.GP_OPENELIS_URL.equals(propertyName);
+		return LabOnFhirConfig.GP_OPENELIS_URL.equals(propertyName);
 	}
 
 	@Override
 	public void globalPropertyChanged(GlobalProperty newValue) {
-		 log.trace("Notified of change to property {}", ISantePlusLabOnFHIRConfig.GP_OPENELIS_URL);
+		 log.trace("Notified of change to property {}", LabOnFhirConfig.GP_OPENELIS_URL);
 
 		if (StringUtils.isNotBlank((String) newValue.getValue())) {
 			enableOpenElisConnector();
