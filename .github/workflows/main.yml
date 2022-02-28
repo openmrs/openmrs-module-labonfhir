@@ -31,7 +31,21 @@ jobs:
 
       - name: Build with Maven
         run: mvn -P 'github-packages' --batch-mode install
-
+      - uses: s4u/maven-settings-action@v2.2.0
+        with:
+          servers: |
+            [{
+                "id": "github-packages",
+                "username": "${{ github.actor }}",
+                "password": "${{ secrets.GITHUB_TOKEN }}"
+            }]
+          properties: |
+            [
+              { "maven.wagon.http.ssl.insecure": "true" },
+              { "maven.wagon.http.ssl.allowall": "true" },
+              { "maven.wagon.http.ssl.ignore.validity.dates": "true"}
+            ]
+          githubServer: false
       - name: Publish package
         run: mvn -P github-packages -DskipTests -Dfindbugs.skip=true -Dpmd.skip=true -Dcpd.skip=true -B deploy
         env:
