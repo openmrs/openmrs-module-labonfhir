@@ -29,8 +29,6 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build with Maven
-        run: mvn -P 'github-packages' --batch-mode install
       - uses: s4u/maven-settings-action@v2.2.0
         with:
           servers: |
@@ -46,6 +44,10 @@ jobs:
               { "maven.wagon.http.ssl.ignore.validity.dates": "true"}
             ]
           githubServer: false
+
+      - name: Build with Maven
+        run: mvn -P github-packages --batch-mode install
+
       - name: Publish package
         run: mvn -P github-packages -DskipTests -Dfindbugs.skip=true -Dpmd.skip=true -Dcpd.skip=true -B deploy
         env:
