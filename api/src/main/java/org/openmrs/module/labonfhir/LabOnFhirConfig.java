@@ -39,9 +39,6 @@ import org.springframework.stereotype.Component;
 @Configuration
 public class LabOnFhirConfig implements ApplicationContextAware {
 	// https://wiki.openmrs.org/display/docs/Setting+and+Reading+Global+Properties?src=contextnavpagetreemode
-	public static final String GP_TEST_ORDER_CONCEPT_UUID = "labonfhir.testsOrderedConceptUuid";
-
-	public static final String GP_ORDER_DESTINATION_CONCEPT_UUID = "labonfhir.orderDestinationConceptUuid";
 
 	public static final String GP_OPENELIS_URL = "labonfhir.openElisUrl";
 
@@ -56,8 +53,6 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	public static final String GP_TRUSTSTORE_PASS = "labonfhir.truststorePass";
 
 	private static final String TEMP_DEFAULT_OPENELIS_URL = "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/fhir";
-
-	private static final String GP_DIAGNOSTIC_REPORT_CONCEPT_UUID = "labonfhir.diagnosticReportConceptUuid";
 
 	private static Log log = LogFactory.getLog(LabOnFhirConfig.class);
 
@@ -113,25 +108,8 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		return url;
 	}
 
-	public String getTestOrderConceptUuid() {
-		return administrationService.getGlobalProperty(GP_TEST_ORDER_CONCEPT_UUID);
-	}
-
-	public String getDiagnosticReportConceptUuid() {
-		return administrationService.getGlobalProperty(GP_DIAGNOSTIC_REPORT_CONCEPT_UUID);
-	}
-
-	public String getOrderDestinationConceptUuid() {
-		return administrationService.getGlobalProperty(GP_ORDER_DESTINATION_CONCEPT_UUID);
-	}
-
 	public String getOpenElisUserUuid() {
 		return administrationService.getGlobalProperty(GP_OPENELIS_USER_UUID);
-	}
-
-	public Predicate<Obs> isTestOrder() {
-		final String testOrderConceptUuid = getTestOrderConceptUuid();
-		return o -> testOrderConceptUuid.equals(o.getConcept().getUuid());
 	}
 
 	public boolean isOpenElisEnabled() {
