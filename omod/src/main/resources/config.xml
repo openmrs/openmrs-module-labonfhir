@@ -50,21 +50,7 @@
 	</messages>
 	<!-- /Internationalization -->
 
-	<globalProperty>
-		<property>@MODULE_ID@.testsOrderedConceptUuid</property>
-		<description>The uuid of the concept indicating a lab test order</description>
-		<defaultValue>1271AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</defaultValue>
-	</globalProperty>
-	<globalProperty>
-		<property>@MODULE_ID@.diagnosticReportConceptUuid</property>
-		<description>The uuid of the concept representing a DiagnosticReport</description>
-		<defaultValue>d7e0f5a6-786f-4ef9-aba4-074cd85b2143</defaultValue>
-	</globalProperty>
-	<globalProperty>
-		<property>@MODULE_ID@.orderDestinationConceptUuid</property>
-		<description>The uuid of the concept indicating the destination of the lab order</description>
-		<defaultValue>160632AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</defaultValue>
-	</globalProperty>
+
 	<globalProperty>
 		<property>@MODULE_ID@.openElisUrl</property>
 		<description>The URL for the OpenELIS system to communicate with</description>
