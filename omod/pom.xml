@@ -9,8 +9,8 @@
 
 	<artifactId>labonfhir-omod</artifactId>
 	<packaging>jar</packaging>
-	<name>ISantePlus Lab on FHIR OMOD</name>
-	<description>Omod submodule for ISantePlus Lab on FHIR</description>
+	<name>Lab on FHIR OMOD</name>
+	<description>Omod submodule for FHIR-based Laboratory workflows.</description>
 
 	<dependencies>
 		<dependency>

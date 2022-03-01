@@ -21,8 +21,8 @@
 
     <artifactId>labonfhir-api</artifactId>
     <packaging>jar</packaging>
-    <name>iSantePlus Lab on FHIR API</name>
-    <description>API project for iSantePlus Lab on FHIR</description>
+    <name>Lab on FHIR API</name>
+    <description>API project for FHIR-based laboratory workflows</description>
 
     <dependencies>
         <dependency>

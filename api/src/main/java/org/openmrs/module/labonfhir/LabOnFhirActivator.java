@@ -23,20 +23,19 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements ApplicationContextAware, DaemonTokenAware {
+public class LabOnFhirActivator extends BaseModuleActivator implements ApplicationContextAware, DaemonTokenAware {
 
-	private static final Logger log = LoggerFactory.getLogger(ISantePlusLabOnFHIRActivator.class);
+	private static final Logger log = LoggerFactory.getLogger(LabOnFhirActivator.class);
 
 	private static ApplicationContext applicationContext;
 
 	private static DaemonToken daemonToken;
 
 	@Autowired
-	private ISantePlusLabOnFHIRConfig config;
+	private LabOnFhirConfig config;
 
 	@Autowired
 	private OpenElisManager openElisManager;
-
 
 	@SneakyThrows
 	@Override
@@ -50,7 +49,8 @@ public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements
 			openElisManager.enableOpenElisConnector();
 		}
 
-		log.info("Started iSantePlus Lab on FHIR Module");
+		log.info("Lab on FHIR Module Started!");
+
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class ISantePlusLabOnFHIRActivator extends BaseModuleActivator implements
 			openElisManager.disableOpenElisConnector();
 		}
 
-		log.info("Shutdown iSantePlus Lab on FHIR Module");
+		log.info("Lab on FHIR Module Shut Down!");
 	}
 
 	@Override

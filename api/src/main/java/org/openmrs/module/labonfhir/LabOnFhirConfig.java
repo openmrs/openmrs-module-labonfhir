@@ -15,31 +15,17 @@ import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.function.Predicate;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.apache.ApacheRestfulClientFactory;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Practitioner;
-import org.hl7.fhir.r4.model.Task;
 import org.openmrs.Obs;
-import org.openmrs.Patient;
-import org.openmrs.Provider;
-import org.openmrs.User;
 import org.openmrs.api.AdministrationService;
-
-import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirPractitionerService;
-import org.openmrs.module.labonfhir.api.scheduler.FetchTaskUpdates;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,7 +37,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Configuration
-public class ISantePlusLabOnFHIRConfig implements ApplicationContextAware {
+public class LabOnFhirConfig implements ApplicationContextAware {
 	// https://wiki.openmrs.org/display/docs/Setting+and+Reading+Global+Properties?src=contextnavpagetreemode
 	public static final String GP_TEST_ORDER_CONCEPT_UUID = "labonfhir.testsOrderedConceptUuid";
 
@@ -73,7 +59,7 @@ public class ISantePlusLabOnFHIRConfig implements ApplicationContextAware {
 
 	private static final String GP_DIAGNOSTIC_REPORT_CONCEPT_UUID = "labonfhir.diagnosticReportConceptUuid";
 
-	private static Log log = LogFactory.getLog(ISantePlusLabOnFHIRConfig.class);
+	private static Log log = LogFactory.getLog(LabOnFhirConfig.class);
 
 	private static ApplicationContext applicationContext;
 

@@ -28,7 +28,7 @@ import org.openmrs.module.fhir2.api.FhirObservationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.dao.FhirObservationDao;
 import org.openmrs.module.fhir2.api.translators.ObservationReferenceTranslator;
-import org.openmrs.module.labonfhir.ISantePlusLabOnFHIRConfig;
+import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.scheduler.tasks.AbstractTask;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	private IGenericClient client;
 
 	@Autowired
-	private ISantePlusLabOnFHIRConfig config;
+	private LabOnFhirConfig config;
     
 	@Autowired
 	@Qualifier("labRestfulClientFactory")
