@@ -157,7 +157,7 @@ public class EncounterCreationListener implements EventListener {
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
-			component.setResource((Resource) resource);
+			component.setResource(resource);
 			component.getRequest().setUrl(resource.fhirType() + "/" + resource.getIdElement().getIdPart())
 			        .setMethod(Bundle.HTTPVerb.PUT);
 			
