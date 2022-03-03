@@ -33,7 +33,7 @@ see more about the [EMR-LIS FHIR Workflow](https://wiki.openmrs.org/display/proj
 
 Configure the Following Global Properties Required By the Lab on Fhir Module
 * `labonfhir.diagnosticReportConceptUuid`  , The uuid of the concept representing a DiagnosticReport
-* `labonfhir.openElisUr`l ,The URL for the OpenELIS system to communicate with
+* `labonfhir.openElisUrl` ,The URL for the OpenELIS system to communicate with
 * `labonfhir.openElisUserUuid` ,UUID for the service user that represents OpenELIS
 * `labonfhir.orderDestinationConceptUuid` ,The uuid of the concept indicating the destination of the lab order
 * `labonfhir.testsOrderedConceptUuid` ,The uuid of the concept indicating a lab test order
