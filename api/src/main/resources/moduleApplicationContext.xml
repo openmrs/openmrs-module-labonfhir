@@ -12,8 +12,6 @@
 
     <context:component-scan base-package="org.openmrs.module.labonfhir"/>
 
-    <bean name="labRestfulClientFactory" class="ca.uhn.fhir.rest.client.apache.ApacheRestfulClientFactory" />
-
     <bean parent="openmrsEventListeners">
         <property name="globalPropertyListeners">
             <list merge="true">

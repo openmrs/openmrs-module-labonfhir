@@ -55,6 +55,8 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 
 	public static final String GP_TRUSTSTORE_PASS = "labonfhir.truststorePass";
 
+	public static final String GP_ACTIVATE_FHIR_PUSH = "labonfhir.activateFhirPush";
+
 	private static final String TEMP_DEFAULT_OPENELIS_URL = "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/fhir";
 
 	private static final String GP_DIAGNOSTIC_REPORT_CONCEPT_UUID = "labonfhir.diagnosticReportConceptUuid";
@@ -74,7 +76,6 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	public CloseableHttpClient httpClient() throws Exception {
 		CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(sslConnectionSocketFactory()).build();
 
-		// return HttpClients.createSystem();
 		return client;
 	}
 
@@ -111,6 +112,11 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		}
 
 		return url;
+	}
+
+	public Boolean getActivateFhirPush() {
+		String activatePush = administrationService.getGlobalProperty(GP_ACTIVATE_FHIR_PUSH, "true");
+		return Boolean.valueOf(activatePush);
 	}
 
 	public String getTestOrderConceptUuid() {

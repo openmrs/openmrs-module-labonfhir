@@ -13,10 +13,6 @@
 	<description>Omod submodule for FHIR-based Laboratory workflows.</description>
 
 	<dependencies>
-		<dependency>
-			<groupId>ca.uhn.hapi.fhir</groupId>
-			<artifactId>hapi-fhir-client</artifactId>
-		</dependency>
         <dependency>
             <groupId>org.openmrs.module</groupId>
             <artifactId>labonfhir-api</artifactId>

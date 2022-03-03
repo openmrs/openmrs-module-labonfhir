@@ -7,16 +7,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.apache.ApacheRestfulClientFactory;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import ca.uhn.fhir.rest.gclient.TokenClientParam;
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.hibernate.SessionFactory;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DiagnosticReport;
@@ -45,17 +41,11 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 	private static ApplicationContext applicationContext;
 
+	@Autowired
+    private LabOnFhirConfig config;
+
+	@Autowired
 	private IGenericClient client;
-
-	@Autowired
-	private LabOnFhirConfig config;
-    
-	@Autowired
-	@Qualifier("labRestfulClientFactory")
-	private IRestfulClientFactory clientFactory;
-
-	@Autowired
-	CloseableHttpClient httpClient;
 
 	@Autowired
 	private FhirTaskService taskService;
@@ -78,7 +68,6 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 	@Override
 	public void execute() {
-		FhirContext ctx = null;
 
 		try {
 			applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
@@ -91,18 +80,9 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		}
 
 		try {
-			// TODO: Clean up
-			ctx = applicationContext.getBean(FhirContext.class);
-			((ApacheRestfulClientFactory)clientFactory).setFhirContext(ctx);
-
-			clientFactory.setHttpClient(httpClient);
-			ctx.setRestfulClientFactory(clientFactory);
-
-			client = ctx.newRestfulGenericClient(config.getOpenElisUrl());
-
 			// Get List of Tasks that belong to this instance and update them
 			updateTasksInBundle(client.search().forResource(Task.class).where(Task.IDENTIFIER.hasSystemWithAnyCode(
-					FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER)).returnBundle(Bundle.class).execute());
+					FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER)).returnBundle(Bundle.class).execute());	
 		} catch (Exception e) {
 			log.error("ERROR executing FetchTaskUpdates : " + e.toString() + getStackTrace(e));
 		}

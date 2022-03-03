@@ -26,10 +26,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>ca.uhn.hapi.fhir</groupId>
-            <artifactId>hapi-fhir-client</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.openmrs</groupId>
             <artifactId>event-api</artifactId>
         </dependency>
