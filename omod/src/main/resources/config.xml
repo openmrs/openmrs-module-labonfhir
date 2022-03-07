@@ -91,5 +91,10 @@
 		<property>@MODULE_ID@.truststorePass</property>
 		<description>Truststore password</description>
 	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.activateFhirPush</property>
+		<description>Switches on/off the FHIR Push Functionality with in the module to an external LIS</description>
+		<defaultValue>true</defaultValue>
+	</globalProperty>
 </module>
 
