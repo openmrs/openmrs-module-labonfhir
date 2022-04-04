@@ -1,12 +1,15 @@
 package org.openmrs.module.labonfhir.api;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.Encounter;
+import org.openmrs.EncounterProvider;
 import org.openmrs.Order;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.fhir2.FhirConstants;
@@ -43,6 +46,10 @@ public class OpenElisFhirOrderHandler {
 		Reference ownerRef = newReference(config.getOpenElisUserUuid(), FhirConstants.PRACTITIONER);
 		
 		Reference encounterRef = newReference(encounter.getUuid(), FhirConstants.ENCOUNTER);
+
+		Optional<EncounterProvider> requesterProvider = encounter.getActiveEncounterProviders().stream().findFirst();
+
+		Reference requesterRef = requesterProvider.isPresent() ? newReference(requesterProvider.get().getUuid(), FhirConstants.PRACTITIONER) : null;
 		
 		// Create Task Resource for given Order
 		Task newTask = new Task();
@@ -52,7 +59,11 @@ public class OpenElisFhirOrderHandler {
 		newTask.setFor(forReference);
 		newTask.setOwner(ownerRef);
 		newTask.setEncounter(encounterRef);
-		
+
+		if(!encounter.getActiveEncounterProviders().isEmpty()){
+			newTask.setRequester(requesterRef);
+		}
+
 		// Save the new Task Resource
 		try {
 			newTask = taskService.create(newTask);
