@@ -3,7 +3,6 @@ package org.openmrs.module.labonfhir.api.scheduler;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -15,6 +14,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Reference;
@@ -44,8 +44,10 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 	private static ApplicationContext applicationContext;
 
+	private static String LOINC_SYSTEM = "http://loinc.org";
+
 	@Autowired
-    private LabOnFhirConfig config;
+	private LabOnFhirConfig config;
 
 	@Autowired
 	private IGenericClient client;
@@ -85,10 +87,10 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		try {
 			// Get List of Tasks that belong to this instance and update them
 			updateTasksInBundle(client.search().forResource(Task.class)
-			        .where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
-			        .where(Task.STATUS.exactly().code(TaskStatus.COMPLETED.toCode())).returnBundle(Bundle.class).execute());
-		}
-		catch (Exception e) {
+					.where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
+					.where(Task.STATUS.exactly().code(TaskStatus.COMPLETED.toCode())).returnBundle(Bundle.class)
+					.execute());
+		} catch (Exception e) {
 			log.error("ERROR executing FetchTaskUpdates : " + e.toString() + getStackTrace(e));
 		}
 
@@ -102,90 +104,99 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		this.stopExecuting();
 	}
 
-	public Collection<Task> updateTasksInBundle(Bundle taskBundle) {
-		// List of tasks that have been updated
-		List<Task> updatedTasks = new ArrayList<>();
+	private void updateTasksInBundle(Bundle taskBundle) {
 
- 		for (Iterator tasks = taskBundle.getEntry().iterator(); tasks.hasNext(); ) {
+		for (Iterator tasks = taskBundle.getEntry().iterator(); tasks.hasNext();) {
 			String openmrsTaskUuid = null;
 
-			try{
+			try {
 				// Read incoming OpenElis task
-				Task openelisTask = (Task)((Bundle.BundleEntryComponent)tasks.next()).getResource();
+				Task openelisTask = (Task) ((Bundle.BundleEntryComponent) tasks.next()).getResource();
 				openmrsTaskUuid = openelisTask.getIdentifierFirstRep().getValue();
 
 				// Find original openmrs task using Identifier
 				Task openmrsTask = taskService.get(openmrsTaskUuid);
 
 				// Only update if matching OpenMRS Task found
-				if(openmrsTask != null) {
+				if (openmrsTask != null) {
 					// Handle status
 					openmrsTask.setStatus(openelisTask.getStatus());
 
-					// Handle output
-					// TODO: Remove prevention of replication
-					if (!openmrsTask.hasOutput() && openelisTask.hasOutput()) {
+					Boolean taskOutPutUpdated = false;
+					if (openelisTask.hasOutput()) {
 						// openmrsTask.setOutput(openelisTask.getOutput());
-						openmrsTask.setOutput(updateOutput(openelisTask.getOutput(), openmrsTask.getEncounter(), openmrsTask.getBasedOn()));
+						taskOutPutUpdated = updateOutput(openelisTask.getOutput(), openmrsTask);
 					}
-
-					// Save Task
-					openmrsTask = taskService.update(openmrsTaskUuid, openmrsTask);
-
-					updatedTasks.add(openmrsTask);
+					if (taskOutPutUpdated) {
+						taskService.update(openmrsTaskUuid, openmrsTask);
+					}
 				}
 			} catch (Exception e) {
 				log.error("Could not save task " + openmrsTaskUuid + ":" + e.toString() + getStackTrace(e));
 			}
 		}
-		return updatedTasks;
 	}
 
-	private List<Task.TaskOutputComponent> updateOutput(List<Task.TaskOutputComponent> output, Reference encounterReference,
-	        List<Reference> basedOn) {
-		List<Task.TaskOutputComponent> outputList = new ArrayList<>();
+	private Boolean updateOutput(List<Task.TaskOutputComponent> output, Task openmrsTask) {
 
+		Reference encounterReference = openmrsTask.getEncounter();
+		List<Reference> basedOn = openmrsTask.getBasedOn();
+		List<String> allExistingLoincCodes = new ArrayList<>();
+		Boolean taskOutPutUpdated = false;
+		// openmrsTask.getOutput().stream().map(ouput -> ouput.getType().getCoding());
+		openmrsTask.getOutput().forEach(out -> {
+			out.getType().getCoding().stream().filter(coding -> coding.hasSystem())
+					.filter(coding -> coding.getSystem().equals(LOINC_SYSTEM))
+					.forEach(coding -> {
+						allExistingLoincCodes.add(coding.getCode());
+					});
+		});
 		if (!output.isEmpty()) {
 			// Save each output entry
 			for (Iterator outputRefI = output.stream().iterator(); outputRefI.hasNext();) {
 				Task.TaskOutputComponent outputRef = (Task.TaskOutputComponent) outputRefI.next();
-				String openelisUuid = ((Reference) outputRef.getValue()).getReferenceElement().getIdPart();
+				String openelisDiagnosticReportUuid = ((Reference) outputRef.getValue()).getReferenceElement()
+						.getIdPart();
 				// Get Diagnostic Report and associated Observations (using include)
 				Bundle diagnosticReportBundle = client.search().forResource(DiagnosticReport.class)
-				        .where(new TokenClientParam("_id").exactly().code(openelisUuid))
-				        .include(DiagnosticReport.INCLUDE_RESULT).include(DiagnosticReport.INCLUDE_SUBJECT)
-				        .returnBundle(Bundle.class).execute();
-				
+						.where(new TokenClientParam("_id").exactly().code(openelisDiagnosticReportUuid))
+						.include(DiagnosticReport.INCLUDE_RESULT).include(DiagnosticReport.INCLUDE_SUBJECT)
+						.returnBundle(Bundle.class).execute();
+
 				DiagnosticReport diagnosticReport = (DiagnosticReport) diagnosticReportBundle.getEntryFirstRep()
-				        .getResource();
-				// save Observation 
-				List<Reference> results = new ArrayList<>();
-				for (Bundle.BundleEntryComponent entry : diagnosticReportBundle.getEntry()) {
-					if (entry.hasResource()) {
-						if (ResourceType.Observation.equals(entry.getResource().getResourceType())) {
-							Observation newObs = (Observation) entry.getResource();
-							newObs.setEncounter(encounterReference);
-							newObs.setBasedOn(basedOn);
-							newObs = observationService.create(newObs);
-							Reference obsRef = new Reference();
-							obsRef.setReference(ResourceType.Observation + "/" + newObs.getIdElement().getIdPart());
-							results.add(obsRef);
+						.getResource();
+				Coding diagnosticReportCode = diagnosticReport.getCode().getCodingFirstRep();
+				if (diagnosticReportCode.getSystem().equals(LOINC_SYSTEM)) {
+					List<Reference> results = new ArrayList<>();
+					if (!allExistingLoincCodes.contains(diagnosticReportCode.getCode())) {
+						// save Observation
+						for (Bundle.BundleEntryComponent entry : diagnosticReportBundle.getEntry()) {
+							if (entry.hasResource()) {
+								if (ResourceType.Observation.equals(entry.getResource().getResourceType())) {
+									Observation newObs = (Observation) entry.getResource();
+									newObs.setEncounter(encounterReference);
+									newObs.setBasedOn(basedOn);
+									newObs = observationService.create(newObs);
+									Reference obsRef = new Reference();
+									obsRef.setReference(
+											ResourceType.Observation + "/" + newObs.getIdElement().getIdPart());
+									results.add(obsRef);
+								}
+							}
 						}
+						diagnosticReport.setResult(results);
+						diagnosticReport.setEncounter(encounterReference);
+						diagnosticReport = diagnosticReportService.create(diagnosticReport);
+						openmrsTask.addOutput().setValue(
+								new Reference().setType(FhirConstants.DIAGNOSTIC_REPORT)
+										.setReference(diagnosticReport.getIdElement().getIdPart()))
+								.setType(diagnosticReport.getCode());
+						taskOutPutUpdated = true;
 					}
 				}
-
-				diagnosticReport.setResult(results);
-				diagnosticReport.setEncounter(encounterReference);
-
-				diagnosticReport = diagnosticReportService.create(diagnosticReport);
-				outputList.add((new Task.TaskOutputComponent())
-				        .setValue(
-				            new Reference().setType(FhirConstants.DIAGNOSTIC_REPORT).setReference(diagnosticReport.getIdElement().getIdPart()))
-				        .setType(diagnosticReport.getCode()));
 			}
 		}
-
-		return outputList;
+		return taskOutPutUpdated;
 	}
 
 	@Override
