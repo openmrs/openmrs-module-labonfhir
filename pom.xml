@@ -20,10 +20,20 @@
   <url>https://wiki.openmrs.org/x/FQ4z</url>
 
   <scm>
-    <connection>scm:git:git@github.com:i-tech-uw/openmrs-module-labonfhir.git</connection>
-    <developerConnection>scm:git:git@github.com:i-tech-uw/openmrs-module-labonfhir.git</developerConnection>
-    <url>https://github.com/i-tech-uw/openmrs-module-labonfhir/</url>
+    <connection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</connection>
+    <developerConnection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</developerConnection>
+    <url>https://github.com/openmrs/openmrs-module-labonfhir/</url>
+     <tag>HEAD</tag>
   </scm>
+
+  <developers>
+		<developer>
+			<name>Mutesasira Moses</name>
+		</developer>
+    <developer>
+			<name>Piotr Mankowski</name>
+		</developer>
+	</developers>
 
   <modules>
     <module>api</module>
