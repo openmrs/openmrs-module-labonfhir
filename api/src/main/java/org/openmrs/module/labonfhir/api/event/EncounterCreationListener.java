@@ -91,47 +91,46 @@ public class EncounterCreationListener implements EventListener {
 	public void processMessage(Message message) {
 		if (message instanceof MapMessage) {
 			MapMessage mapMessage = (MapMessage) message;
-			
+
 			String uuid;
 			try {
 				uuid = mapMessage.getString("uuid");
 				log.debug("Handling encounter {}", uuid);
-			}
-			catch (JMSException e) {
+			} catch (JMSException e) {
 				log.error("Exception caught while trying to get encounter uuid for event", e);
 				return;
 			}
-			
+
 			if (uuid == null || StringUtils.isBlank(uuid)) {
 				return;
 			}
-			
+
 			Encounter encounter;
 			try {
 				encounter = encounterService.getEncounterByUuid(uuid);
 				log.trace("Fetched encounter {}", encounter);
-			}
-			catch (APIException e) {
+			} catch (APIException e) {
 				log.error("Exception caught while trying to load encounter {}", uuid, e);
 				return;
 			}
-			
-			// this is written this way so we can solve whether we can handle this encounter in one pass through the Obs
+
+			// this is written this way so we can solve whether we can handle this encounter
+			// in one pass through the Obs
 			boolean openElisOrder = true;
 			boolean testOrder = true;
-			
+
 			if (openElisOrder && testOrder) {
 				log.trace("Found order(s) for encounter {}", encounter);
 				try {
 					Task task = handler.createOrder(encounter);
-					if (config.getActivateFhirPush()) {
-						Bundle labBundle = createLabBundle(task);
-						client.transaction().withBundle(labBundle).execute();
-						log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
+					if (task != null) {
+						if (config.getActivateFhirPush()) {
+							Bundle labBundle = createLabBundle(task);
+							client.transaction().withBundle(labBundle).execute();
+							log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
+						}
 					}
-					
-				}
-				catch (OrderCreationException e) {
+				} catch (OrderCreationException e) {
 					log.error("An exception occurred while trying to create the order for encounter {}", encounter, e);
 				}
 			} else {

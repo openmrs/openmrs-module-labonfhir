@@ -9,7 +9,7 @@
 	<name>${project.parent.name}</name>
 	<version>${project.parent.version}</version>
 	<package>org.openmrs.module.labonfhir</package>
-	<author>ibacher</author>
+	<author>ibacher ,moses mutesa</author>
 	<description>
 			${project.parent.description}
 	</description>
@@ -53,7 +53,7 @@
 	<globalProperty>
 		<property>@MODULE_ID@.openElisUrl</property>
 		<description>The URL for the OpenELIS system to communicate with</description>
-		<defaultValue>https://testapi.openelisci.org:8444/hapi-fhir-jpaserver</defaultValue>
+		<defaultValue>http://172.17.0.1:8081/fhir</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.openElisUserUuid</property>
@@ -63,18 +63,22 @@
 	<globalProperty>
 		<property>@MODULE_ID@.keystorePath</property>
 		<description>Path to keystore for HttpClient</description>
+		<defaultValue>/ssl/lf.keystore</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.keystorePass</property>
 		<description>Keystore password</description>
+		<defaultValue>testtest</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.truststorePath</property>
 		<description>Path to truststore for HttpClient</description>
+		<defaultValue>/ssl/lf.truststore</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.truststorePass</property>
 		<description>Truststore password</description>
+		<defaultValue>testtest</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.activateFhirPush</property>
@@ -82,4 +86,3 @@
 		<defaultValue>true</defaultValue>
 	</globalProperty>
 </module>
-
