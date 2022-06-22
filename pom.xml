@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -10,7 +9,7 @@
 
   <groupId>org.openmrs.module</groupId>
   <artifactId>labonfhir</artifactId>
-  <version>${moduleVersion}</version>
+  <version>1.0.0</version>
   <packaging>pom</packaging>
   <name>Lab on FHIR</name>
   <description>A module to support lab order communication between OpenMRS and an LIS like OpenELIS using FHIR-based
@@ -23,7 +22,7 @@
     <connection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</connection>
     <developerConnection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</developerConnection>
     <url>https://github.com/openmrs/openmrs-module-labonfhir/</url>
-     <tag>HEAD</tag>
+     <tag>1.0.0</tag>
   </scm>
 
   <developers>
