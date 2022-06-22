@@ -29,8 +29,8 @@ public class OpenElisFhirOrderHandler {
 	private FhirTaskService taskService;
 	
 	public Task createOrder(Encounter encounter) throws OrderCreationException {
-		if(encounter.getOrders().isEmpty()){
-           return null ;
+		if (encounter.getOrders().isEmpty()) {
+			return null;
 		}
 		// Create References
 		List<Reference> basedOnRefs = encounter.getOrders().stream().map(order -> {
