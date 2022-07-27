@@ -97,7 +97,7 @@
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.password</property>
-		<description>Pasword for HTTP Basic Auth with the LIS</description>
+		<description>Password for HTTP Basic Auth with the LIS</description>
 		<defaultValue>password</defaultValue>
 	</globalProperty>
 </module>
