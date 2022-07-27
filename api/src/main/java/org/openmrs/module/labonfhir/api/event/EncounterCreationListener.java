@@ -11,7 +11,6 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.model.api.Include;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Resource;
@@ -70,9 +69,6 @@ public class EncounterCreationListener implements EventListener {
 	@Autowired
 	@Qualifier("fhirR4")
 	private FhirContext ctx;
-	
-	@Autowired
-	CloseableHttpClient httpClient;
 	
 	@Override
 	public void onMessage(Message message) {
