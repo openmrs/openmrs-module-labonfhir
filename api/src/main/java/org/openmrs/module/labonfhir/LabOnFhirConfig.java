@@ -13,14 +13,11 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
-import java.util.function.Predicate;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.openmrs.api.AdministrationService;
@@ -30,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
@@ -54,6 +50,17 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 
 	private static final String TEMP_DEFAULT_OPENELIS_URL = "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/fhir";
 
+	public static final String GP_AUTH_TYPE = "labonfhir.authType";
+
+	public static final String GP_USER_NAME = "labonfhir.userName";
+
+	public static final String GP_PASSWORD = "labonfhir.password";
+
+	public enum AuthType{
+		SSL,
+		BASIC
+	}
+
 	private static Log log = LogFactory.getLog(LabOnFhirConfig.class);
 
 	private static ApplicationContext applicationContext;
@@ -64,13 +71,6 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 
 	@Autowired
 	FhirPractitionerService practitionerService;
-
-	@Bean
-	public CloseableHttpClient httpClient() throws Exception {
-		CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(sslConnectionSocketFactory()).build();
-
-		return client;
-	}
 
 	public SSLConnectionSocketFactory sslConnectionSocketFactory() throws Exception {
 		return new SSLConnectionSocketFactory(sslContext());
@@ -114,6 +114,26 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 
 	public String getOpenElisUserUuid() {
 		return administrationService.getGlobalProperty(GP_OPENELIS_USER_UUID);
+	}
+
+	public String getOpenElisUserName() {
+		return administrationService.getGlobalProperty(GP_USER_NAME);
+	}
+
+	public String getOpenElisPassword() {
+		return administrationService.getGlobalProperty(GP_PASSWORD);
+	}
+
+	public AuthType getAuthType() {
+		String authTypeGp = administrationService.getGlobalProperty(GP_AUTH_TYPE);
+		switch (authTypeGp.toUpperCase()) {
+			case "BASIC":
+				return AuthType.BASIC;
+			case "SSL":
+				return AuthType.SSL;
+			default:
+				return AuthType.BASIC;
+		}
 	}
 
 	public boolean isOpenElisEnabled() {

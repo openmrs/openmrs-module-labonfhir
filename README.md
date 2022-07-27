@@ -39,6 +39,9 @@ Configure the Following Global Properties Required By the Lab on Fhir Module
 * `labonfhir.keystorePath` , Path to keystore for HttpClient
 * `labonfhir.keystorePass` , Keystore password
 * `labonfhir.activateFhirPush` ,Switches on/off the FHIR Push Functionality with in the module to an external LIS
+* `labonfhir.authType` , The HTTP Auth type to support .Either SSL or Basic
+* `labonfhir.userName`  ,User name for HTTP Basic Auth with the LIS
+* `labonfhir.password`  ,Password for HTTP Basic Auth with the LIS
 
 
  

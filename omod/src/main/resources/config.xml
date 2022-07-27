@@ -85,4 +85,19 @@
 		<description>Switches on/off the FHIR Push Functionality with in the module to an external LIS</description>
 		<defaultValue>true</defaultValue>
 	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.authType</property>
+		<description>HTTP Auth Type ie Basic/SSL</description>
+		<defaultValue>Basic</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.userName</property>
+		<description>User name for HTTP Basic Auth with the LIS</description>
+		<defaultValue>user</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.password</property>
+		<description>Password for HTTP Basic Auth with the LIS</description>
+		<defaultValue>password</defaultValue>
+	</globalProperty>
 </module>
