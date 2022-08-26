@@ -36,7 +36,7 @@ public class FhirConfig {
             CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(config.sslConnectionSocketFactory()).build();
             configureFhirHttpClient(client);
         }
-
+        fhirContext.getRestfulClientFactory().setSocketTimeout(200 * 1000);
         IGenericClient fhirClient = fhirContext.newRestfulGenericClient(config.getOpenElisUrl());
         if (config.getAuthType().equals(AuthType.BASIC)) {
             BasicAuthInterceptor authInterceptor = new BasicAuthInterceptor(config.getOpenElisUserName(),
