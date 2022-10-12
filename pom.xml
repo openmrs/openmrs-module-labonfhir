@@ -185,25 +185,16 @@
         <repository>
           <id>github-packages</id>
           <name>Github Maven Repo</name>
-          <url>https://maven.pkg.github.com/i-tech-uw/openmrs-module-labonfhir</url>
+          <url>https://maven.pkg.github.com/openmrs/openmrs-module-labonfhir</url>
           <uniqueVersion>false</uniqueVersion>
         </repository>
         <snapshotRepository>
           <id>github-packages</id>
           <name>Github Maven Repo</name>
-          <url>https://maven.pkg.github.com/i-tech-uw/openmrs-module-labonfhir</url>
+          <url>https://maven.pkg.github.com/openmrs/openmrs-module-labonfhir</url>
           <uniqueVersion>true</uniqueVersion>
         </snapshotRepository>
       </distributionManagement>
-      <repositories>
-        <!-- Use the Github Packages Repo first when looking up dependencies -->
-        <repository>
-          <id>github-packages</id>
-          <name>Github Maven Repo</name>
-          <url>https://maven.pkg.github.com/i-tech-uw/openmrs-module-labonfhir</url>
-        </repository>
-      </repositories>
-
     </profile>
   </profiles>
   <properties>
