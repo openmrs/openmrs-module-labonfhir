@@ -20,6 +20,7 @@ import org.openmrs.api.APIException;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.fhir2.api.FhirLocationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
+import org.openmrs.module.fhir2.api.util.FhirUtils;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
@@ -153,8 +154,7 @@ public class EncounterCreationListener implements EventListener {
 		transactionBundle.setType(Bundle.BundleType.TRANSACTION);
 		List<IBaseResource> labResources = labBundle.getAllResources();
 		if (!task.getLocation().isEmpty()) {
-			System.out.println("debug loc...................>>>" + task.getLocation().getReference());
-			labResources.add(fhirLocationService.get(task.getLocation().getReference()));
+			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
 		}
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
