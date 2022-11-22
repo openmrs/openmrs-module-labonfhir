@@ -10,9 +10,17 @@
 package org.openmrs.module.labonfhir;
 
 import lombok.SneakyThrows;
+
+import java.util.Optional;
+
+import org.openmrs.PatientIdentifier;
+import org.openmrs.PatientIdentifierType;
+import org.openmrs.api.PatientService;
 import org.openmrs.module.BaseModuleActivator;
 import org.openmrs.module.DaemonToken;
 import org.openmrs.module.DaemonTokenAware;
+import org.openmrs.module.fhir2.api.FhirPatientIdentifierSystemService;
+import org.openmrs.module.fhir2.model.FhirPatientIdentifierSystem;
 import org.openmrs.module.labonfhir.api.OpenElisManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,51 +32,73 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class LabOnFhirActivator extends BaseModuleActivator implements ApplicationContextAware, DaemonTokenAware {
-
+	
 	private static final Logger log = LoggerFactory.getLogger(LabOnFhirActivator.class);
-
+	
 	private static ApplicationContext applicationContext;
-
+	
 	private static DaemonToken daemonToken;
-
+	
 	@Autowired
 	private LabOnFhirConfig config;
-
+	
 	@Autowired
 	private OpenElisManager openElisManager;
-
+	
+	@Autowired
+	PatientService patientService;
+	
+	@Autowired
+	FhirPatientIdentifierSystemService fhirPatientIdentifierSystemService;
+	
 	@SneakyThrows
 	@Override
 	public void started() {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
-
+		
 		openElisManager.setDaemonToken(daemonToken);
-
+		
 		// subscribe to encounter creation events
 		if (config.isOpenElisEnabled()) {
 			openElisManager.enableOpenElisConnector();
 		}
-
+		createFhirPatientIdentierSystem();
+		
 		log.info("Lab on FHIR Module Started!");
-
+		
 	}
-
+	
 	@Override
 	public void stopped() {
 		if (openElisManager != null) {
 			openElisManager.disableOpenElisConnector();
 		}
-
+		
 		log.info("Lab on FHIR Module Shut Down!");
 	}
-
+	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
-
+	
 	@Override
 	public void setDaemonToken(DaemonToken token) {
 		this.daemonToken = token;
+	}
+	
+	private void createFhirPatientIdentierSystem() {
+		PatientIdentifierType pidType = patientService
+		        .getPatientIdentifierTypeByUuid(config.getPatientIentifierUuid().trim());
+		
+		Optional<FhirPatientIdentifierSystem> existingIdSystem = fhirPatientIdentifierSystemService
+		        .getFhirPatientIdentifierSystem(pidType);
+		if (!existingIdSystem.isPresent()) {
+			FhirPatientIdentifierSystem idSystem = new FhirPatientIdentifierSystem();
+			idSystem.setName("OpenLIS ID System");
+			idSystem.setPatientIdentifierType(pidType);
+			idSystem.setUrl(config.getLisIentifierSystemUrl().trim());
+			fhirPatientIdentifierSystemService.saveFhirPatientIdentifierSystem(idSystem);
+		}
 	}
 }

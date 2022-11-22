@@ -100,4 +100,15 @@
 		<description>Password for HTTP Basic Auth with the LIS</description>
 		<defaultValue>password</defaultValue>
 	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.openmrsPatientIdentifier.uuid</property>
+		<description>Patient Identifier used to generate the FHIR Identifier System</description>
+		<defaultValue>05a29f94-c0ed-11e2-94be-8c13b969e334</defaultValue>
+	</globalProperty>
+
+	<globalProperty>
+		<property>@MODULE_ID@.openElisIdentifierSystem.url</property>
+		<description>OpenElis Identifier System url</description>
+		<defaultValue>http://openelis-global.org/pat_nationalId</defaultValue>
+	</globalProperty>
 </module>

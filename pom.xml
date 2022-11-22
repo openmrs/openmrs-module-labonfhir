@@ -226,7 +226,7 @@
   </profiles>
   <properties>
     <revision>1.2.1</revision>
-    <fhir2Version>1.4.0</fhir2Version>
+    <fhir2Version>1.6.0</fhir2Version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

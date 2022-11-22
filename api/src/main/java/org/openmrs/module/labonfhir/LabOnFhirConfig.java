@@ -56,6 +56,10 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 
 	public static final String GP_PASSWORD = "labonfhir.password";
 
+	public static final String GP_PATIENT_IDENTIFIER_UUID = "labonfhir.openmrsPatientIdentifier.uuid";
+
+	public static final String GP_LIS_IDENTIFIER_SYSTEM_URL = "labonfhir.openElisIdentifierSystem.url";
+
 	public enum AuthType{
 		SSL,
 		BASIC
@@ -122,6 +126,14 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 
 	public String getOpenElisPassword() {
 		return administrationService.getGlobalProperty(GP_PASSWORD);
+	}
+
+	public String getPatientIentifierUuid() {
+		return administrationService.getGlobalProperty(GP_PATIENT_IDENTIFIER_UUID ,"05a29f94-c0ed-11e2-94be-8c13b969e334");
+	}
+
+	public String getLisIentifierSystemUrl() {
+		return administrationService.getGlobalProperty(GP_LIS_IDENTIFIER_SYSTEM_URL ,"http://openelis-global.org/pat_nationalId");
 	}
 
 	public AuthType getAuthType() {
