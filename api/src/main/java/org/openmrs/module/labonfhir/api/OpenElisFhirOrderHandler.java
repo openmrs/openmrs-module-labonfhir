@@ -50,6 +50,8 @@ public class OpenElisFhirOrderHandler {
 		
 		Reference encounterRef = newReference(encounter.getUuid(), FhirConstants.ENCOUNTER);
 
+		Reference locationRef = newReference(encounter.getLocation().getUuid(), FhirConstants.LOCATION);
+
 		Optional<EncounterProvider> requesterProvider = encounter.getActiveEncounterProviders().stream().findFirst();
 
 		Reference requesterRef = requesterProvider.isPresent() ? newReference(requesterProvider.get().getUuid(), FhirConstants.PRACTITIONER) : null;
@@ -62,6 +64,7 @@ public class OpenElisFhirOrderHandler {
 		newTask.setFor(forReference);
 		newTask.setOwner(ownerRef);
 		newTask.setEncounter(encounterRef);
+		newTask.setLocation(locationRef);
 
 		if(!encounter.getActiveEncounterProviders().isEmpty()){
 			newTask.setRequester(requesterRef);

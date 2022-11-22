@@ -18,7 +18,9 @@ import org.hl7.fhir.r4.model.Task;
 import org.openmrs.Encounter;
 import org.openmrs.api.APIException;
 import org.openmrs.api.EncounterService;
+import org.openmrs.module.fhir2.api.FhirLocationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
+import org.openmrs.module.fhir2.api.util.FhirUtils;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
@@ -65,6 +67,9 @@ public class EncounterCreationListener implements EventListener {
 	
 	@Autowired
 	private FhirTaskService fhirTaskService;
+
+	@Autowired
+	FhirLocationService fhirLocationService ;
 	
 	@Autowired
 	@Qualifier("fhirR4")
@@ -144,11 +149,13 @@ public class EncounterCreationListener implements EventListener {
 		includes.add(new Include("Task:based-on"));
 		
 		IBundleProvider labBundle = fhirTaskService.searchForTasks(null, null, null, uuid, null, null, includes);
-		labBundle.getAllResources();
 		
 		Bundle transactionBundle = new Bundle();
 		transactionBundle.setType(Bundle.BundleType.TRANSACTION);
 		List<IBaseResource> labResources = labBundle.getAllResources();
+		if (!task.getLocation().isEmpty()) {
+			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
+		}
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
