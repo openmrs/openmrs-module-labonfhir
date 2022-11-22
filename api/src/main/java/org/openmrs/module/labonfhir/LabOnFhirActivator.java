@@ -89,16 +89,12 @@ public class LabOnFhirActivator extends BaseModuleActivator implements Applicati
 	
 	private void createFhirPatientIdentierSystem() {
 		PatientIdentifierType pidType = patientService
-		        .getPatientIdentifierTypeByUuid(config.getPatientIentifierUuid().trim());
+				.getPatientIdentifierTypeByUuid(config.getPatientIentifierUuid().trim());
 		
-		Optional<FhirPatientIdentifierSystem> existingIdSystem = fhirPatientIdentifierSystemService
-		        .getFhirPatientIdentifierSystem(pidType);
-		if (!existingIdSystem.isPresent()) {
-			FhirPatientIdentifierSystem idSystem = new FhirPatientIdentifierSystem();
-			idSystem.setName("OpenLIS ID System");
-			idSystem.setPatientIdentifierType(pidType);
-			idSystem.setUrl(config.getLisIentifierSystemUrl().trim());
-			fhirPatientIdentifierSystemService.saveFhirPatientIdentifierSystem(idSystem);
-		}
+		FhirPatientIdentifierSystem idSystem = new FhirPatientIdentifierSystem();
+		idSystem.setName("OpenLIS ID System");
+		idSystem.setPatientIdentifierType(pidType);
+		idSystem.setUrl(config.getLisIentifierSystemUrl().trim());
+		fhirPatientIdentifierSystemService.saveFhirPatientIdentifierSystem(idSystem);
 	}
 }
