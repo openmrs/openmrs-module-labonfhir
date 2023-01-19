@@ -5,12 +5,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang.StringUtils;
 import org.openmrs.Encounter;
 import org.openmrs.GlobalProperty;
+import org.openmrs.Order;
 import org.openmrs.api.GlobalPropertyListener;
 import org.openmrs.event.Event;
 import org.openmrs.module.DaemonToken;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.event.EncounterCreationListener;
 
+import org.openmrs.module.labonfhir.api.event.OrderCreationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,9 @@ public class OpenElisManager implements GlobalPropertyListener {
 
 	@Autowired
 	private EncounterCreationListener encounterListener;
+
+	@Autowired
+	private OrderCreationListener orderListener;
 
 	private final AtomicBoolean isRunning = new AtomicBoolean(false);
 
@@ -56,10 +61,11 @@ public class OpenElisManager implements GlobalPropertyListener {
 	public void enableOpenElisConnector() {
 		log.info("Enabling OpenElis FHIR Connector");
 
-		encounterListener.setDaemonToken(daemonToken);
+		orderListener.setDaemonToken(daemonToken);
 
 		if (!isRunning.get()) {
-			Event.subscribe(Encounter.class, Event.Action.CREATED.toString(), encounterListener);
+			// Event.subscribe(Encounter.class, Event.Action.CREATED.toString(), encounterListener);
+			Event.subscribe(Order.class, Event.Action.CREATED.toString(), orderListener);
 		}
 		isRunning.set(true);
 	}
@@ -67,7 +73,8 @@ public class OpenElisManager implements GlobalPropertyListener {
 	public void disableOpenElisConnector() {
 		log.info("Disabling OpenElis FHIR Connector");
 		if (isRunning.get()) {
-			Event.unsubscribe(Encounter.class, Event.Action.CREATED, encounterListener);
+			// Event.unsubscribe(Encounter.class, Event.Action.CREATED, encounterListener);
+			Event.unsubscribe(Order.class, Event.Action.CREATED, orderListener);
 		}
 		isRunning.set(false);
 	}
