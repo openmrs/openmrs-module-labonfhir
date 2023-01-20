@@ -39,56 +39,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component("labEncounterListener")
-public class EncounterCreationListener implements EventListener {
-	
-	private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
-	
-	public DaemonToken getDaemonToken() {
-		return daemonToken;
-	}
-	
-	public void setDaemonToken(DaemonToken daemonToken) {
-		this.daemonToken = daemonToken;
-	}
-	
-	private DaemonToken daemonToken;
-	
-	@Autowired
-	private IGenericClient client;
-	
-	@Autowired
-	private LabOnFhirConfig config;
-	
+public class EncounterCreationListener extends LabCreationListener {
+	private static final Logger log = LoggerFactory.getLogger(OrderCreationListener.class);
 	@Autowired
 	private EncounterService encounterService;
-	
-	@Autowired
-	private LabOrderHandler handler;
-	
-	@Autowired
-	private FhirTaskService fhirTaskService;
 
 	@Autowired
-	FhirLocationService fhirLocationService ;
-	
-	@Autowired
-	@Qualifier("fhirR4")
-	private FhirContext ctx;
-	
-	@Override
-	public void onMessage(Message message) {
-		log.trace("Received message {}", message);
-		
-		Daemon.runInDaemonThread(() -> {
-			try {
-				processMessage(message);
-			}
-			catch (Exception e) {
-				log.error("Failed to update the user's last viewed patients property", e);
-			}
-		}, daemonToken);
-	}
-	
+	private LabOrderHandler handler;
+
 	public void processMessage(Message message) {
 		if (message instanceof MapMessage) {
 			MapMessage mapMessage = (MapMessage) message;
@@ -124,13 +82,7 @@ public class EncounterCreationListener implements EventListener {
 				log.trace("Found order(s) for encounter {}", encounter);
 				try {
 					Task task = handler.createOrder(encounter);
-					if (task != null) {
-						if (config.getActivateFhirPush()) {
-							Bundle labBundle = createLabBundle(task);
-							client.transaction().withBundle(labBundle).execute();
-							log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
-						}
-					}
+					sendTask(task);
 				} catch (OrderCreationException e) {
 					log.error("An exception occurred while trying to create the order for encounter {}", encounter, e);
 				}
@@ -138,32 +90,5 @@ public class EncounterCreationListener implements EventListener {
 				log.trace("No orders found for encounter {}", encounter);
 			}
 		}
-	}
-	
-	private Bundle createLabBundle(Task task) {
-		TokenAndListParam uuid = new TokenAndListParam().addAnd(new TokenParam(task.getIdElement().getIdPart()));
-		HashSet<Include> includes = new HashSet<>();
-		includes.add(new Include("Task:patient"));
-		includes.add(new Include("Task:owner"));
-		includes.add(new Include("Task:encounter"));
-		includes.add(new Include("Task:based-on"));
-		
-		IBundleProvider labBundle = fhirTaskService.searchForTasks(null, null, null, uuid, null, null, includes);
-		
-		Bundle transactionBundle = new Bundle();
-		transactionBundle.setType(Bundle.BundleType.TRANSACTION);
-		List<IBaseResource> labResources = labBundle.getAllResources();
-		if (!task.getLocation().isEmpty()) {
-			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
-		}
-		for (IBaseResource r : labResources) {
-			Resource resource = (Resource) r;
-			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
-			component.setResource(resource);
-			component.getRequest().setUrl(resource.fhirType() + "/" + resource.getIdElement().getIdPart())
-			        .setMethod(Bundle.HTTPVerb.PUT);
-			
-		}
-		return transactionBundle;
 	}
 }
