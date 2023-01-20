@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OpenElisFhirOrderHandler {
+public class LabOrderHandler {
 
 	@Autowired
 	private LabOnFhirConfig config;
@@ -32,7 +32,7 @@ public class OpenElisFhirOrderHandler {
 
 	public Task createOrder(Order order) throws OrderCreationException {
 		//TDO: MAKE THIS A GLOBAL CONFIG
-		final String REQUIRED_TESTS_UUIDS = "160046AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,165254AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"; // GeneXpert
+		final String REQUIRED_TESTS_UUIDS = config.getOrderTestUuids(); // GeneXpert
 		// Exit if Test Order doesn't contain required tests
 		boolean mappedTestsExist = false;
 		for (Obs obs : order.getEncounter().getObs()) {
@@ -51,7 +51,7 @@ public class OpenElisFhirOrderHandler {
 
 		Reference forReference = newReference(order.getPatient().getUuid(), FhirConstants.PATIENT);
 
-		Reference ownerRef = newReference(config.getOpenElisUserUuid(), FhirConstants.PRACTITIONER);
+		Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
 
 		Reference encounterRef = newReference(order.getEncounter().getUuid(), FhirConstants.ENCOUNTER);
 
@@ -108,7 +108,7 @@ public class OpenElisFhirOrderHandler {
 
 		Reference forReference = newReference(encounter.getPatient().getUuid(), FhirConstants.PATIENT);
 
-		Reference ownerRef = newReference(config.getOpenElisUserUuid(), FhirConstants.PRACTITIONER);
+		Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
 
 		Reference encounterRef = newReference(encounter.getUuid(), FhirConstants.ENCOUNTER);
 

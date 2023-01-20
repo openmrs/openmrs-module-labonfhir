@@ -37,10 +37,10 @@ public class FhirConfig {
             configureFhirHttpClient(client);
         }
 
-        IGenericClient fhirClient = fhirContext.newRestfulGenericClient(config.getOpenElisUrl());
+        IGenericClient fhirClient = fhirContext.newRestfulGenericClient(config.getLisUrl());
         if (config.getAuthType().equals(AuthType.BASIC)) {
-            BasicAuthInterceptor authInterceptor = new BasicAuthInterceptor(config.getOpenElisUserName(),
-                    config.getOpenElisPassword());
+            BasicAuthInterceptor authInterceptor = new BasicAuthInterceptor(config.getLisUserName(),
+                    config.getLisPassword());
             fhirClient.registerInterceptor(authInterceptor);
         }
         return fhirClient;

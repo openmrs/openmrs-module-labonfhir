@@ -25,7 +25,7 @@ import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
-import org.openmrs.module.labonfhir.api.OpenElisFhirOrderHandler;
+import org.openmrs.module.labonfhir.api.LabOrderHandler;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
 
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
@@ -63,7 +63,7 @@ public class EncounterCreationListener implements EventListener {
 	private EncounterService encounterService;
 	
 	@Autowired
-	private OpenElisFhirOrderHandler handler;
+	private LabOrderHandler handler;
 	
 	@Autowired
 	private FhirTaskService fhirTaskService;
@@ -117,10 +117,10 @@ public class EncounterCreationListener implements EventListener {
 
 			// this is written this way so we can solve whether we can handle this encounter
 			// in one pass through the Obs
-			boolean openElisOrder = true;
+			boolean lisOrder = true;
 			boolean testOrder = true;
 
-			if (openElisOrder && testOrder) {
+			if (lisOrder && testOrder) {
 				log.trace("Found order(s) for encounter {}", encounter);
 				try {
 					Task task = handler.createOrder(encounter);

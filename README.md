@@ -32,8 +32,8 @@ The Lab on FHir Module only generates the Lab WorkFlow Fhir Bundle When an order
 see more about the [EMR-LIS FHIR Workflow](https://wiki.openmrs.org/display/projects/Lab+Integration+Workflow)
 
 Configure the Following Global Properties Required By the Lab on Fhir Module
-* `labonfhir.openElisUrl` ,The URL for the OpenELIS system to communicate with
-* `labonfhir.openElisUserUuid` ,UUID for the service user that represents OpenELIS
+* `labonfhir.lisUrl` ,The URL for the OpenELIS system to communicate with
+* `labonfhir.lisUserUuid` ,UUID for the service user that represents OpenELIS
 * `labonfhir.truststorePath` , Path to truststore for HttpClient
 * `labonfhir.truststorePass` , Truststore password
 * `labonfhir.keystorePath` , Path to keystore for HttpClient
@@ -44,4 +44,3 @@ Configure the Following Global Properties Required By the Lab on Fhir Module
 * `labonfhir.password`  ,Password for HTTP Basic Auth with the LIS
 
 
- 

@@ -26,7 +26,7 @@ import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
-import org.openmrs.module.labonfhir.api.OpenElisFhirOrderHandler;
+import org.openmrs.module.labonfhir.api.LabOrderHandler;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ public class OrderCreationListener implements EventListener {
 	private OrderService orderService;
 	
 	@Autowired
-	private OpenElisFhirOrderHandler handler;
+	private LabOrderHandler handler;
 	
 	@Autowired
 	private FhirTaskService fhirTaskService;

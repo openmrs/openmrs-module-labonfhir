@@ -8,6 +8,7 @@ import org.openmrs.GlobalProperty;
 import org.openmrs.Order;
 import org.openmrs.api.GlobalPropertyListener;
 import org.openmrs.event.Event;
+import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.event.EncounterCreationListener;
@@ -19,15 +20,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OpenElisManager implements GlobalPropertyListener {
+public class LabOrderManager implements GlobalPropertyListener {
 
-	private static final Logger log = LoggerFactory.getLogger(OpenElisManager.class);
+	private static final Logger log = LoggerFactory.getLogger(LabOrderManager.class);
 
 	public void setDaemonToken(DaemonToken daemonToken) {
 		this.daemonToken = daemonToken;
 	}
 
 	private DaemonToken daemonToken;
+
+	@Autowired
+	private LabOnFhirConfig config;
 
 	@Autowired
 	private EncounterCreationListener encounterListener;
@@ -39,42 +43,53 @@ public class OpenElisManager implements GlobalPropertyListener {
 
 	@Override
 	public boolean supportsPropertyName(String propertyName) {
-		return LabOnFhirConfig.GP_OPENELIS_URL.equals(propertyName);
+		return LabOnFhirConfig.GP_LIS_URL.equals(propertyName);
 	}
 
 	@Override
 	public void globalPropertyChanged(GlobalProperty newValue) {
-		 log.trace("Notified of change to property {}", LabOnFhirConfig.GP_OPENELIS_URL);
+		 log.trace("Notified of change to property {}", LabOnFhirConfig.GP_LIS_URL);
 
 		if (StringUtils.isNotBlank((String) newValue.getValue())) {
-			enableOpenElisConnector();
+			enableLisConnector();
 		} else {
-			disableOpenElisConnector();
+			disableLisConnector();
 		}
 	}
 
 	@Override
 	public void globalPropertyDeleted(String propertyName) {
-		disableOpenElisConnector();
+		disableLisConnector();
 	}
 
-	public void enableOpenElisConnector() {
-		log.info("Enabling OpenElis FHIR Connector");
+	public void enableLisConnector() {
+		log.info("Enabling LIS FHIR Connector for "+config.getLabUpdateTriggerObject());
+		if(config.getLabUpdateTriggerObject() == "Encounter") {
+			encounterListener.setDaemonToken(daemonToken);
 
-		orderListener.setDaemonToken(daemonToken);
+			if (!isRunning.get()) {
+				Event.subscribe(Encounter.class, Event.Action.CREATED.toString(), encounterListener);
+			}
+		} else if(config.getLabUpdateTriggerObject() == "Order") {
+			orderListener.setDaemonToken(daemonToken);
 
-		if (!isRunning.get()) {
-			// Event.subscribe(Encounter.class, Event.Action.CREATED.toString(), encounterListener);
-			Event.subscribe(Order.class, Event.Action.CREATED.toString(), orderListener);
+			if (!isRunning.get()) {
+				Event.subscribe(Order.class, Event.Action.CREATED.toString(), orderListener);
+			}
+		} else {
+			log.error("Could not enable LIS connection, invalid trigger object: " + config.getLabUpdateTriggerObject());
+			return;
 		}
+
 		isRunning.set(true);
 	}
 
-	public void disableOpenElisConnector() {
-		log.info("Disabling OpenElis FHIR Connector");
-		if (isRunning.get()) {
-			// Event.unsubscribe(Encounter.class, Event.Action.CREATED, encounterListener);
+	public void disableLisConnector() {
+		log.info("Disabling LIS FHIR Connector");
+		if (isRunning.get() && config.getLabUpdateTriggerObject() == "Order") {
 			Event.unsubscribe(Order.class, Event.Action.CREATED, orderListener);
+		} else if (isRunning.get() && config.getLabUpdateTriggerObject() == "Encounter") {
+			Event.unsubscribe(Encounter.class, Event.Action.CREATED, encounterListener);
 		}
 		isRunning.set(false);
 	}
