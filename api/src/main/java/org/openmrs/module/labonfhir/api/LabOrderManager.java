@@ -8,11 +8,9 @@ import org.openmrs.GlobalProperty;
 import org.openmrs.Order;
 import org.openmrs.api.GlobalPropertyListener;
 import org.openmrs.event.Event;
-import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.event.EncounterCreationListener;
-
 import org.openmrs.module.labonfhir.api.event.OrderCreationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
