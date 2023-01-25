@@ -64,13 +64,13 @@ public class LabOrderManager implements GlobalPropertyListener {
 
 	public void enableLisConnector() {
 		log.info("Enabling LIS FHIR Connector for "+config.getLabUpdateTriggerObject());
-		if(config.getLabUpdateTriggerObject() == "Encounter") {
+		if(config.getLabUpdateTriggerObject().equals("Encounter")) {
 			encounterListener.setDaemonToken(daemonToken);
 
 			if (!isRunning.get()) {
 				Event.subscribe(Encounter.class, Event.Action.CREATED.toString(), encounterListener);
 			}
-		} else if(config.getLabUpdateTriggerObject() == "Order") {
+		} else if(config.getLabUpdateTriggerObject().equals("Order")) {
 			orderListener.setDaemonToken(daemonToken);
 
 			if (!isRunning.get()) {
@@ -86,9 +86,9 @@ public class LabOrderManager implements GlobalPropertyListener {
 
 	public void disableLisConnector() {
 		log.info("Disabling LIS FHIR Connector");
-		if (isRunning.get() && config.getLabUpdateTriggerObject() == "Order") {
+		if (isRunning.get() && config.getLabUpdateTriggerObject().equals("Order")) {
 			Event.unsubscribe(Order.class, Event.Action.CREATED, orderListener);
-		} else if (isRunning.get() && config.getLabUpdateTriggerObject() == "Encounter") {
+		} else if (isRunning.get() && config.getLabUpdateTriggerObject().equals("Encounter")) {
 			Event.unsubscribe(Encounter.class, Event.Action.CREATED, encounterListener);
 		}
 		isRunning.set(false);
