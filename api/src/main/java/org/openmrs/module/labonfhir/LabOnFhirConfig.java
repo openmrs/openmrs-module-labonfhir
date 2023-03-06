@@ -34,9 +34,9 @@ import org.springframework.stereotype.Component;
 @Configuration
 public class LabOnFhirConfig implements ApplicationContextAware {
 
-	public static final String GP_OPENELIS_URL = "labonfhir.openElisUrl";
+	public static final String GP_LIS_URL = "labonfhir.lisUrl";
 
-	public static final String GP_OPENELIS_USER_UUID = "labonfhir.openelisUserUuid";
+	public static final String GP_LIS_USER_UUID = "labonfhir.lisUserUuid";
 
 	public static final String GP_KEYSTORE_PATH = "labonfhir.keystorePath";
 
@@ -48,7 +48,7 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 
 	public static final String GP_ACTIVATE_FHIR_PUSH = "labonfhir.activateFhirPush";
 
-	private static final String TEMP_DEFAULT_OPENELIS_URL = "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/fhir";
+	private static final String TEMP_DEFAULT_LIS_URL = "https://testapi.openelisci.org:8444/hapi-fhir-jpaserver/fhir";
 
 	public static final String GP_AUTH_TYPE = "labonfhir.authType";
 
@@ -58,8 +58,11 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 
 	public static final String GP_PATIENT_IDENTIFIER_UUID = "labonfhir.openmrsPatientIdentifier.uuid";
 
-	public static final String GP_LIS_IDENTIFIER_SYSTEM_URL = "labonfhir.openElisIdentifierSystem.url";
+	public static final String GP_LIS_IDENTIFIER_SYSTEM_URL = "labonfhir.lisIdentifierSystem.url";
 
+	public static final String GP_ORDER_TEST_UUIDS = "labonfhir.orderTestUuids";
+
+	public static final String GP_LAB_UPDATE_TRIGGER_OBJECT = "labonfhir.labUpdateTriggerObject";
 	public enum AuthType{
 		SSL,
 		BASIC
@@ -100,12 +103,12 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		return sslContextBuilder.build();
 	}
 
-	public String getOpenElisUrl() {
+	public String getLisUrl() {
 		//return GP_OPENELIS_URL
-		String url = administrationService.getGlobalProperty(GP_OPENELIS_URL);
+		String url = administrationService.getGlobalProperty(GP_LIS_URL);
 
 		if(StringUtils.isBlank(url)) {
-			url = TEMP_DEFAULT_OPENELIS_URL;
+			url = TEMP_DEFAULT_LIS_URL;
 		}
 
 		return url;
@@ -116,26 +119,33 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		return Boolean.valueOf(activatePush);
 	}
 
-	public String getOpenElisUserUuid() {
-		return administrationService.getGlobalProperty(GP_OPENELIS_USER_UUID);
+	public String getLisUserUuid() {
+		return administrationService.getGlobalProperty(GP_LIS_USER_UUID);
 	}
 
-	public String getOpenElisUserName() {
+	public String getLisUserName() {
 		return administrationService.getGlobalProperty(GP_USER_NAME);
 	}
 
-	public String getOpenElisPassword() {
+	public String getLisPassword() {
 		return administrationService.getGlobalProperty(GP_PASSWORD);
 	}
 
-	public String getPatientIentifierUuid() {
+	public String getPatientIdentifierUuid() {
 		return administrationService.getGlobalProperty(GP_PATIENT_IDENTIFIER_UUID ,"05a29f94-c0ed-11e2-94be-8c13b969e334");
 	}
 
-	public String getLisIentifierSystemUrl() {
+	public String getLisIdentifierSystemUrl() {
 		return administrationService.getGlobalProperty(GP_LIS_IDENTIFIER_SYSTEM_URL ,"http://openelis-global.org/pat_nationalId");
 	}
 
+	public String getOrderTestUuids() {
+		return administrationService.getGlobalProperty(GP_ORDER_TEST_UUIDS, "160046AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,165254AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+	}
+
+	public String getLabUpdateTriggerObject() {
+		return administrationService.getGlobalProperty(GP_LAB_UPDATE_TRIGGER_OBJECT, "Encounter");
+	}
 	public AuthType getAuthType() {
 		String authTypeGp = administrationService.getGlobalProperty(GP_AUTH_TYPE);
 		switch (authTypeGp.toUpperCase()) {
@@ -148,12 +158,12 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		}
 	}
 
-	public boolean isOpenElisEnabled() {
-		return StringUtils.isNotBlank(getOpenElisUrl());
+	public boolean isLisEnabled() {
+		return StringUtils.isNotBlank(getLisUrl());
 	}
 
-	public Practitioner getOpenElisPractitioner() {
-		return practitionerService.get(getOpenElisUserUuid());
+	public Practitioner getLisPractitioner() {
+		return practitionerService.get(getLisUserUuid());
 	}
 
 	private KeyStore loadKeystore(String filePath) {

@@ -80,7 +80,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			// return;
 		}
 
-		if (!config.isOpenElisEnabled()) {
+		if (!config.isLisEnabled()) {
 			return;
 		}
 
@@ -110,7 +110,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			String openmrsTaskUuid = null;
 
 			try {
-				// Read incoming OpenElis task
+				// Read incoming LIS Task
 				Task openelisTask = (Task) ((Bundle.BundleEntryComponent) tasks.next()).getResource();
 				openmrsTaskUuid = openelisTask.getIdentifierFirstRep().getValue();
 
