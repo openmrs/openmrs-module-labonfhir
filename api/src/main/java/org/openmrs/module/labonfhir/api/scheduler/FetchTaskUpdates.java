@@ -50,6 +50,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	private LabOnFhirConfig config;
 
 	@Autowired
+	@Qualifier("labOrderFhirClient")
 	private IGenericClient client;
 
 	@Autowired

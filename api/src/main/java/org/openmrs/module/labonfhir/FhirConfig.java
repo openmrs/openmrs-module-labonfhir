@@ -14,7 +14,7 @@ import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-@Configuration
+@Configuration("labOrderFhirConfig")
 public class FhirConfig {
     
     @Autowired
@@ -30,7 +30,7 @@ public class FhirConfig {
         fhirContext.setRestfulClientFactory(clientFactory);
     }
     
-    @Bean
+    @Bean(name ="labOrderFhirClient")
     public IGenericClient getFhirClient() throws Exception {
         if (config.getAuthType().equals(AuthType.SSL)) {
             CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(config.sslConnectionSocketFactory()).build();
