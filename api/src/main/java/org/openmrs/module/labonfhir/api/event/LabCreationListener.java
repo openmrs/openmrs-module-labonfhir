@@ -1,7 +1,5 @@
 package org.openmrs.module.labonfhir.api.event;
 
-import javax.jms.JMSException;
-import javax.jms.MapMessage;
 import javax.jms.Message;
 import java.util.HashSet;
 import java.util.List;
@@ -12,14 +10,10 @@ import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
-import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Task;
-import org.openmrs.Encounter;
-import org.openmrs.api.APIException;
-import org.openmrs.api.EncounterService;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
@@ -27,8 +21,6 @@ import org.openmrs.module.fhir2.api.FhirLocationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.util.FhirUtils;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
-import org.openmrs.module.labonfhir.api.LabOrderHandler;
-import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +33,7 @@ public abstract class LabCreationListener implements EventListener {
 	private DaemonToken daemonToken;
 
 	@Autowired
+	@Qualifier("labOrderFhirClient")
 	private IGenericClient client;
 
 	@Autowired
