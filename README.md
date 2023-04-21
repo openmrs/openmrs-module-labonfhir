@@ -42,10 +42,10 @@ Configure the Following Global Properties Required By the Lab on Fhir Module
 * `labonfhir.authType` , The HTTP Auth type to support .Either SSL or Basic
 * `labonfhir.userName`  ,User name for HTTP Basic Auth with the LIS
 * `labonfhir.password`  ,Password for HTTP Basic Auth with the LIS
-* `labonfhir.filterOrderBytestUuids' ,Allows filtering Oders by Test Uuuids- either true or false
-* `labonfhir.orderTestUuids' ,Concept UUIDs to filter by for Test Orders that get sent to the LIS
-* `labonfhir.labUpdateTriggerObject' ,The OpenMRS object type that should trigger LIS synchronization - either Encounter or Order
-* `labonfhir.addObsAsTaskInput' ,Allows Adding Obs as Task Input- either true or false
+* `labonfhir.filterOrderBytestUuids` ,Allows filtering Oders by Test Uuuids- either true or false
+* `labonfhir.orderTestUuids` ,Concept UUIDs to filter by for Test Orders that get sent to the LIS
+* `labonfhir.labUpdateTriggerObject` ,The OpenMRS object type that should trigger LIS synchronization - either Encounter or Order
+* `labonfhir.addObsAsTaskInput` ,Allows Adding Obs as Task Input- either true or false
 
 
 
