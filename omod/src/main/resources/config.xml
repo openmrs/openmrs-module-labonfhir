@@ -123,4 +123,16 @@
 		<description>The OpenMRS object type that should trigger LIS synchronization - either Encounter or Order.</description>
 		<defaultValue>Encounter</defaultValue>
 	</globalProperty>
+
+	<globalProperty>
+		<property>@MODULE_ID@.addObsAsTaskInput</property>
+		<description>Allows Adding Obs as Task Input</description>
+		<defaultValue>false</defaultValue>
+	</globalProperty>
+
+	<globalProperty>
+		<property>@MODULE_ID@.filterOrderBytestUuids</property>
+		<description>Allows filtering Oders by Test Uuuids</description>
+		<defaultValue>true</defaultValue>
+	</globalProperty>
 </module>
