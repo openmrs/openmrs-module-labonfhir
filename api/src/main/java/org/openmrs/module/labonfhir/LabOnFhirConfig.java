@@ -63,6 +63,11 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	public static final String GP_ORDER_TEST_UUIDS = "labonfhir.orderTestUuids";
 
 	public static final String GP_LAB_UPDATE_TRIGGER_OBJECT = "labonfhir.labUpdateTriggerObject";
+
+	public static final String GP_ADD_OBS_AS_TASK_INPUT = "labonfhir.addObsAsTaskInput";
+
+	public static final String GP_FILTER_ORDER_BY_TEST_UUIDS = "labonfhir.filterOrderBytestUuids";
+
 	public enum AuthType{
 		SSL,
 		BASIC
@@ -146,6 +151,18 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	public String getLabUpdateTriggerObject() {
 		return administrationService.getGlobalProperty(GP_LAB_UPDATE_TRIGGER_OBJECT, "Encounter");
 	}
+
+	public Boolean filterOrderByTestUuuids() {
+		String filterOrders = administrationService.getGlobalProperty(GP_FILTER_ORDER_BY_TEST_UUIDS, "true");
+		return Boolean.valueOf(filterOrders);
+	}
+
+	public Boolean addObsAsTaskInput() {
+		String addObsAsTaskInPut = administrationService.getGlobalProperty(GP_ADD_OBS_AS_TASK_INPUT, "false");
+		return Boolean.valueOf(addObsAsTaskInPut);
+	}
+
+
 	public AuthType getAuthType() {
 		String authTypeGp = administrationService.getGlobalProperty(GP_AUTH_TYPE);
 		switch (authTypeGp.toUpperCase()) {
