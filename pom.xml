@@ -60,6 +60,20 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
+        <groupId>org.openmrs.module</groupId>
+        <artifactId>webservices.rest-omod</artifactId>
+        <version>${restVersion}</version>
+        <scope>provided</scope>
+		</dependency>
+
+		<dependency>
+        <groupId>org.openmrs.module</groupId>
+        <artifactId>webservices.rest-omod-common</artifactId>
+        <version>${restVersion}</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+		</dependency>
+      <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
         <version>1.18.12</version>
@@ -227,6 +241,7 @@
   <properties>
     <revision>1.3.0-SNAPSHOT</revision>
     <fhir2Version>1.6.0</fhir2Version>
+    <restVersion>2.26.0</restVersion>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

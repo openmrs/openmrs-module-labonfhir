@@ -36,6 +36,56 @@
             <column name="uuid" value="8c17b376-1a2v-11e1-a51a-00248140a5eb" />
         </insert>
     </changeSet>
+    <changeSet id="create-failed_task-table-2023-06-05" author="mozzymutesa" dbms="mysql">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="failed_task"/></not>
+		</preConditions>
+		<comment>
+			Creating the failed_task table
+		</comment>
+		<createTable tableName="failed_task">
+			<column name="id" type="int" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false"/>
+			</column>
+			<column name="error" type="varchar(255)" />
+            <column name="task_uuid" type="char(38)" />
+            <column name="is_sent" type="boolean" />
+            <column name="uuid" type="char(38)">
+				<constraints nullable="false" unique="true"></constraints>
+			</column>
+            <column name="date_voided" type="DATETIME"/>
+            <column name="date_changed" type="DATETIME"/>
+            <column name="date_created" type="DATETIME"/>
+            <column name="void_reason" type="varchar(255)" />
+            <column name="changed_by" type="int" />
+            <column name="voided_by" type="int" />
+            <column name="creator" type="int" />
+            <column defaultValueBoolean="false" name="voided" type="BOOLEAN"/>
+		</createTable>
+    </changeSet> 
+    <changeSet id="create-retry_failed_tasks-task-2023-06-05" author="mozzymutesa" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM scheduler_task_config
+                WHERE schedulable_class = 'org.openmrs.module.labonfhir.api.scheduler.RetryFailedTasks'
+                And name = 'Retry Failed Tasks'
+            </sqlCheck>
+        </preConditions>
+        <comment>Inserting RetryFailedTasks Task into 'schedule_task_config' table</comment>
+        <insert tableName="scheduler_task_config">
+            <column name="name" value="Retry Failed Tasks" />
+            <column name="description" value="Retries to Send Failed Tasks to the LIS" />
+            <column name="schedulable_class" value="org.openmrs.module.labonfhir.api.scheduler.RetryFailedTasks" />
+            <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss" />
+            <column name="start_time" valueDate="now()" />
+            <column name="repeat_interval" value="3600" />
+            <column name="date_created" valueDate="CURRENT_TIMESTAMP" />
+            <column name="created_by" value="1" />
+            <column name="start_on_startup" value="1"/>
+            <column name="started" value="0"/>
+            <column name="uuid" value="ae35121c-41e6-46f1-b2a2-0d9d2fa63e74" />
+        </insert>
+    </changeSet>
 </databaseChangeLog>
 
 
