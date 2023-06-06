@@ -54,12 +54,12 @@
 	<globalProperty>
 		<property>@MODULE_ID@.lisUrl</property>
 		<description>The URL for an LIS system like OpenELIS system to communicate with</description>
-		<defaultValue>http://172.17.0.1:8081/fhir</defaultValue>
+		<defaultValue>http://openhim-core:5001/fhir/</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.lisUserUuid</property>
 		<description>UUID for the service user that represents a LIS like OpenELIS</description>
-		<defaultValue>f9badd80-ab76-11e2-9e96-0800200c9a66</defaultValue>
+		<defaultValue>738185ba-eac9-11e5-8f4d-e06995eac916</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.keystorePath</property>
@@ -104,7 +104,7 @@
 	<globalProperty>
 		<property>@MODULE_ID@.openmrsPatientIdentifier.uuid</property>
 		<description>Patient Identifier used to generate the FHIR Identifier System</description>
-		<defaultValue>05a29f94-c0ed-11e2-94be-8c13b969e334</defaultValue>
+		<defaultValue>6b6e9d94-015b-48f6-ac95-da239512ff91</defaultValue>
 	</globalProperty>
 
 	<globalProperty>
@@ -122,18 +122,18 @@
 	<globalProperty>
 		<property>@MODULE_ID@.labUpdateTriggerObject</property>
 		<description>The OpenMRS object type that should trigger LIS synchronization - either Encounter or Order.</description>
-		<defaultValue>Encounter</defaultValue>
+		<defaultValue>Order</defaultValue>
 	</globalProperty>
 
 	<globalProperty>
 		<property>@MODULE_ID@.addObsAsTaskInput</property>
 		<description>Allows Adding Obs as Task Input</description>
-		<defaultValue>false</defaultValue>
+		<defaultValue>true</defaultValue>
 	</globalProperty>
 
 	<globalProperty>
 		<property>@MODULE_ID@.filterOrderBytestUuids</property>
 		<description>Allows filtering Oders by Test Uuuids</description>
-		<defaultValue>true</defaultValue>
+		<defaultValue>false</defaultValue>
 	</globalProperty>
 </module>
