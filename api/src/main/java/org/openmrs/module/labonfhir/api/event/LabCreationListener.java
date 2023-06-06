@@ -109,11 +109,12 @@ public abstract class LabCreationListener implements EventListener {
 		if (task != null) {
 			if (config.getActivateFhirPush()) {
 				Bundle labBundle = createLabBundle(task);
-				try{
+				try {
 					client.transaction().withBundle(labBundle).execute();
-				}catch(Exception e){
-                    saveFailedTask(task.getIdElement().getIdPart(), e.getMessage());
-					log.error("Failed to send Task with UUID "+ task.getIdElement().getIdPart(), e);
+				}
+				catch (Exception e) {
+					saveFailedTask(task.getIdElement().getIdPart(), e.getMessage());
+					log.error("Failed to send Task with UUID " + task.getIdElement().getIdPart(), e);
 				}
 				log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
 			}
