@@ -62,10 +62,13 @@ public class RetryFailedTasks extends AbstractTask implements ApplicationContext
     }
     
     private void retrySendingFailedTasks() {
-        List<FailedTask> failedTasks = labOnFhirService.getAllFailedTasks(false) ;
+        List<FailedTask> failedTasks = labOnFhirService.getAllFailedTasks(false);
         
         failedTasks.forEach(failedTask -> {
-             Task task = fhirTaskService.get(failedTask.getTaskUuid());
+            Task task = fhirTaskService.get(failedTask.getTaskUuid());
+            if (task == null) {
+                return;
+            }
             try {
                 Bundle labBundle = orderCreationListener.createLabBundle(task);
                 client.transaction().withBundle(labBundle).execute();
@@ -78,6 +81,5 @@ public class RetryFailedTasks extends AbstractTask implements ApplicationContext
                 log.error(e);
             }
         });
-        
     }
 }
