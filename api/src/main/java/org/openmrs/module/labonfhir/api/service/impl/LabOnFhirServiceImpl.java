@@ -12,6 +12,13 @@ public class LabOnFhirServiceImpl implements LabOnFhirService{
     @Autowired
 	LabOnFhirDao dao;
 
+    /**
+	 * Injected in moduleApplicationContext.xml
+	 */
+	public void setDao(LabOnFhirDao dao) {
+		this.dao = dao;
+	}
+
     @Override
     public FailedTask getFailedTaskByUuid(String uuid) throws APIException {
         return dao.getFailedTaskByUuid(uuid);

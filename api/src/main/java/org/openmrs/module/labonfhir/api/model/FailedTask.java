@@ -41,7 +41,7 @@ public class FailedTask extends BaseOpenmrsData {
         this.error = error;
     }
     
-    public boolean isSent() {
+    public boolean getIsSent() {
         return isSent;
     }
     

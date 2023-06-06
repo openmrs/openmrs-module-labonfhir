@@ -2,6 +2,8 @@ package org.openmrs.module.labonfhir.api.scheduler;
 
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.module.fhir2.api.FhirTaskService;
@@ -16,11 +18,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 @Component
 public class RetryFailedTasks extends AbstractTask implements ApplicationContextAware {
-    
+    private static Log log = LogFactory.getLog(RetryFailedTasks.class);
+
     private static ApplicationContext applicationContext;
     
     @Autowired
@@ -36,6 +40,10 @@ public class RetryFailedTasks extends AbstractTask implements ApplicationContext
     @Autowired
     @Qualifier("labOrderListener") 
     private  OrderCreationListener orderCreationListener;
+
+    @Autowired
+	@Qualifier("fhirR4")
+	private FhirContext ctx;
     
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -44,6 +52,7 @@ public class RetryFailedTasks extends AbstractTask implements ApplicationContext
     
     @Override
     public void execute() {
+        log.info("Executing Retry Failed tasks");
         try {
             applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
         }
@@ -62,9 +71,12 @@ public class RetryFailedTasks extends AbstractTask implements ApplicationContext
                 client.transaction().withBundle(labBundle).execute();
                 failedTask.setIsSent(true);
                 labOnFhirService.saveOrUpdateFailedTask(failedTask);
+                log.info("Resent Failed task:" + failedTask.getTaskUuid());
+                log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
             }
-            catch (Exception e) {}
-            
+            catch (Exception e) {
+                log.error(e);
+            }
         });
         
     }
