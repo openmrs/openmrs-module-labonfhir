@@ -21,6 +21,8 @@ import org.openmrs.module.fhir2.api.FhirLocationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.util.FhirUtils;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
+import org.openmrs.module.labonfhir.api.model.FailedTask;
+import org.openmrs.module.labonfhir.api.service.LabOnFhirService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,9 @@ public abstract class LabCreationListener implements EventListener {
 	@Autowired
 	private FhirTaskService fhirTaskService;
 
+	@Autowired
+	private LabOnFhirService labOnFhirService ;
+
 	public DaemonToken getDaemonToken() {
 		return daemonToken;
 	}
@@ -73,7 +78,7 @@ public abstract class LabCreationListener implements EventListener {
 
 	public abstract void processMessage(Message message);
 
-	private Bundle createLabBundle(Task task) {
+	public Bundle createLabBundle(Task task) {
 		TokenAndListParam uuid = new TokenAndListParam().addAnd(new TokenParam(task.getIdElement().getIdPart()));
 		HashSet<Include> includes = new HashSet<>();
 		includes.add(new Include("Task:patient"));
@@ -104,9 +109,23 @@ public abstract class LabCreationListener implements EventListener {
 		if (task != null) {
 			if (config.getActivateFhirPush()) {
 				Bundle labBundle = createLabBundle(task);
-				client.transaction().withBundle(labBundle).execute();
+				try {
+					client.transaction().withBundle(labBundle).execute();
+				}
+				catch (Exception e) {
+					saveFailedTask(task.getIdElement().getIdPart(), e.getMessage());
+					log.error("Failed to send Task with UUID " + task.getIdElement().getIdPart(), e);
+				}
 				log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
 			}
 		}
+	}
+
+	private void saveFailedTask(String taskUuid ,String error) {
+		FailedTask failedTask = new FailedTask();
+		failedTask.setError(error);
+		failedTask.setIsSent(false);
+		failedTask.setTaskUuid(taskUuid);
+		labOnFhirService.saveOrUpdateFailedTask(failedTask);
 	}
 }

@@ -19,4 +19,32 @@
             </list>
         </property>
     </bean>
+    <bean id="labOnFhirService"
+            class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+        <property name="transactionManager">
+            <ref bean="transactionManager" />
+        </property>
+        <property name="target">
+            <bean class="org.openmrs.module.labonfhir.api.service.impl.LabOnFhirServiceImpl">
+                <property name="dao" ref="labOnFhirDao" />
+            </bean>
+        </property>
+        <property name="preInterceptors">
+            <ref bean="serviceInterceptors" />
+        </property>
+        <property name="transactionAttributeSource">
+            <ref bean="transactionAttributeSource" />
+        </property>
+    </bean>
+
+    <!-- Adds LabOnFhirService to OpenMRS context so it can be accessed
+    calling Context.getService(LabOnFhirService.class) -->
+    <bean parent="serviceContext">
+        <property name="moduleService">
+            <list>
+                <value>org.openmrs.module.labonfhir.api.service.LabOnFhirService</value>
+                <ref bean="labOnFhirService" />
+            </list>
+        </property>
+    </bean>
 </beans>
