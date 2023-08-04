@@ -15,7 +15,7 @@
     <parent>
         <groupId>org.openmrs.module</groupId>
         <artifactId>labonfhir</artifactId>
-        <version>${revision}</version>
+        <version>1.3.1</version>
     </parent>
 
     <artifactId>labonfhir-api</artifactId>
