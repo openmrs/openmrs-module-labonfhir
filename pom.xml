@@ -239,7 +239,7 @@
     </profile>
   </profiles>
   <properties>
-    <fhir2Version>1.6.0</fhir2Version>
+    <fhir2Version>1.10.0</fhir2Version>
     <restVersion>2.26.0</restVersion>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>

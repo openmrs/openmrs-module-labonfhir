@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.openmrs.module.fhir2.api.search.param.TaskSearchParams;
 
 public abstract class LabCreationListener implements EventListener {
 
@@ -86,7 +87,7 @@ public abstract class LabCreationListener implements EventListener {
 		includes.add(new Include("Task:encounter"));
 		includes.add(new Include("Task:based-on"));
 
-		IBundleProvider labBundle = fhirTaskService.searchForTasks(null, null, null, uuid, null, null, includes);
+		IBundleProvider labBundle = fhirTaskService.searchForTasks(new TaskSearchParams(null, null, null, uuid, null, null, includes));
 
 		Bundle transactionBundle = new Bundle();
 		transactionBundle.setType(Bundle.BundleType.TRANSACTION);
