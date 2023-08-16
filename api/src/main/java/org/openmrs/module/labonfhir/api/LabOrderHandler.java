@@ -8,8 +8,13 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.DecimalType;
 import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
@@ -59,7 +64,21 @@ public class LabOrderHandler {
 				Observation observation = observationService.get(obs.getUuid());
 				Task.ParameterComponent input = new Task.ParameterComponent();
 				input.setType(observation.getCode());
-				input.setValue(observation.getValue());
+				//this is a temporaly fix because currentl the TASK api supports ony few value types
+				//TO DO The OpenMRS task api should support more value types ie ValueQuantity ,valueCodeableConcept , valueboolean
+				if (observation.getValue() instanceof CodeableConcept) {
+					CodeableConcept concept = (CodeableConcept) observation.getValue();
+					input.setValue(new StringType().setValue(concept.getCodingFirstRep().getDisplay()));
+				} else if (observation.getValue() instanceof Quantity) {
+					Double quantity = ((Quantity) observation.getValue()).getValue().doubleValue();
+					DecimalType decimal = new DecimalType();
+					decimal.setValue(quantity);
+					input.setValue(decimal);
+				} else if (observation.getValue() instanceof BooleanType) {
+					input.setValue(new StringType().setValue(((BooleanType) observation.getValue()).getValueAsString()));
+				} else {
+					input.setValue(observation.getValue());
+				}
 				taskInputs.add(input);
 			}
 		}
