@@ -5,6 +5,7 @@ import java.util.List;
 import org.openmrs.api.APIException;
 import org.openmrs.module.labonfhir.api.dao.LabOnFhirDao;
 import org.openmrs.module.labonfhir.api.model.FailedTask;
+import org.openmrs.module.labonfhir.api.model.TaskRequest;
 import org.openmrs.module.labonfhir.api.service.LabOnFhirService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,6 +43,16 @@ public class LabOnFhirServiceImpl implements LabOnFhirService{
     @Override
     public void onShutdown() {
     
+    }
+
+    @Override
+    public TaskRequest getLastTaskRequest() throws APIException {
+       return  dao.getLastTaskRequest();
+    }
+
+    @Override
+    public TaskRequest saveOrUpdateTaskRequest(TaskRequest taskRequest) throws APIException {
+        return dao.saveOrUpdateTaskRequest(taskRequest);
     }
     
 }

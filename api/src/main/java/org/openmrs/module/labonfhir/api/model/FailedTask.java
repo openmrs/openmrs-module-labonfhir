@@ -31,6 +31,7 @@ public class FailedTask extends BaseOpenmrsData {
     }
     @Override
     public void setId(Integer id) {
+        this.id = id;
     }
     
     public String getError() {
