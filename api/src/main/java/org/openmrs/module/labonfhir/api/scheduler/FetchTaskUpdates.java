@@ -126,11 +126,12 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 				taskBundle = client.loadPage().next(taskBundle).execute();
 				taskBundles.add(taskBundle);
 			}
-			updateTasksInBundle(taskBundles);
-			
-			TaskRequest request = new TaskRequest();
-			request.setRequestDate(newDate);
-			labOnFhirService.saveOrUpdateTaskRequest(request);
+			Boolean tasksUpdated = updateTasksInBundle(taskBundles);
+			if (tasksUpdated) {
+				TaskRequest request = new TaskRequest();
+				request.setRequestDate(newDate);
+				labOnFhirService.saveOrUpdateTaskRequest(request);
+			}
 		}
 		catch (Exception e) {
 			log.error("ERROR executing FetchTaskUpdates : " + e.toString() + getStackTrace(e));
@@ -146,7 +147,8 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		this.stopExecuting();
 	}
 
-	private void updateTasksInBundle(List<Bundle> taskBundles) {
+	private Boolean updateTasksInBundle(List<Bundle> taskBundles) {
+		Boolean tasksUpdated = false;
 		for (Bundle bundle : taskBundles) {
 			for (Iterator tasks = bundle.getEntry().iterator(); tasks.hasNext();) {
 				String openmrsTaskUuid = null;
@@ -170,6 +172,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 						}
 						if (taskOutPutUpdated) {
 							taskService.update(openmrsTaskUuid, openmrsTask);
+							tasksUpdated = taskOutPutUpdated;
 						}
 					}
 				}
@@ -178,6 +181,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 				}
 			}
 		}
+		return tasksUpdated;
 	}
 
 	private Boolean updateOutput(List<Task.TaskOutputComponent> output, Task openmrsTask) {
