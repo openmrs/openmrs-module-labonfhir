@@ -2,6 +2,7 @@ package org.openmrs.module.labonfhir.api.service;
 
 import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.labonfhir.api.model.FailedTask;
+import org.openmrs.module.labonfhir.api.model.TaskRequest;
 
 import java.util.List;
 import org.openmrs.api.APIException;
@@ -40,5 +41,23 @@ public interface LabOnFhirService extends OpenmrsService{
 	@Transactional
 	List<FailedTask> getAllFailedTasks(Boolean isSent) throws APIException;
 
-    
+	/**
+	 * Saves an TaskRequest
+	 * 
+	 * @param taskRequest
+	 * @return TaskRequest
+	 * @throws APIException
+	 */
+	@Transactional
+	TaskRequest saveOrUpdateTaskRequest(TaskRequest taskRequest) throws APIException;
+	
+
+	/**
+	 * Returns the Last Task Request
+
+	 * @throws APIException
+	 */
+	@Transactional(readOnly = true)
+	TaskRequest getLastTaskRequest() throws APIException;
+  
 }
