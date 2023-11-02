@@ -9,7 +9,7 @@
 
   <groupId>org.openmrs.module</groupId>
   <artifactId>labonfhir</artifactId>
-  <version>1.3.2-SNAPSHOT</version>
+  <version>1.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Lab on FHIR</name>
   <description>A module to support lab order communication between OpenMRS and an LIS like OpenELIS using FHIR-based
@@ -41,6 +41,12 @@
 
   <dependencyManagement>
     <dependencies>
+       <dependency>
+        <groupId>org.openmrs.api</groupId>
+        <artifactId>openmrs-api</artifactId>
+        <version>${openmrsPlatformVersion}</version>
+        <scope>provided</scope>
+      </dependency>
       <dependency>
         <groupId>org.openmrs</groupId>
         <artifactId>event-api</artifactId>
@@ -245,7 +251,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
-    <openmrsPlatformVersion>2.0.5</openmrsPlatformVersion>
+    <openmrsPlatformVersion>2.3.1</openmrsPlatformVersion>
     <hapifhirVersion>4.2.0</hapifhirVersion>
   </properties>
 </project>

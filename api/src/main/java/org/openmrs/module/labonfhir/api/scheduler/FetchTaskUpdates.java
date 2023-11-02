@@ -11,20 +11,25 @@ import java.util.List;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.TokenClientParam;
 import ca.uhn.fhir.rest.param.DateRangeParam;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
+import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
+import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.codesystems.TaskStatus;
+import org.openmrs.Order;
+import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
 import org.openmrs.module.fhir2.api.FhirObservationService;
@@ -41,6 +46,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+
 import java.text.SimpleDateFormat;
 
 @Component
@@ -71,6 +77,9 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 	@Autowired
 	FhirObservationService observationService;
+
+	@Autowired
+	OrderService orderService;
 
 	@Autowired
 	ObservationReferenceTranslator observationReferenceTranslator;
@@ -166,6 +175,9 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 						openmrsTask.setStatus(openelisTask.getStatus());
 						
 						Boolean taskOutPutUpdated = false;
+						if(openmrsTask.hasBasedOn()){
+                            setOrderNumberFromLIS(openmrsTask.getBasedOn());
+						}
 						if (openelisTask.hasOutput()) {
 							// openmrsTask.setOutput(openelisTask.getOutput());
 							taskOutPutUpdated = updateOutput(openelisTask.getOutput(), openmrsTask);
@@ -182,6 +194,33 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			}
 		}
 		return tasksUpdated;
+	}
+
+	private void setOrderNumberFromLIS(List<Reference> basedOn) {
+		basedOn.forEach(ref -> {
+			if (ref.hasReferenceElement()) {
+				IIdType referenceElement = ref.getReferenceElement();
+				if ("ServiceRequest".equals(referenceElement.getResourceType())) {
+					String serviceRequestUuid = referenceElement.getIdPart();
+					try {
+						ServiceRequest serviceRequest = client.read().resource(ServiceRequest.class)
+						        .withId(serviceRequestUuid).execute();
+						if (serviceRequest.hasRequisition()) {
+							Order order = orderService.getOrderByUuid(serviceRequestUuid);
+							if (order != null) {
+								String commentText = "Update Order with Accesion Number From LIS";
+								String accessionNumber = serviceRequest.getRequisition().getValue();
+								orderService.updateOrderFulfillerStatus(order, Order.FulfillerStatus.IN_PROGRESS,
+								    commentText, accessionNumber);
+							}
+						}
+					}
+					catch (ResourceNotFoundException e) {
+						log.error("Could not Fetch ServiceRequest/" + serviceRequestUuid + ":" + e.toString() + getStackTrace(e));
+					}
+				}
+			}
+		});
 	}
 
 	private Boolean updateOutput(List<Task.TaskOutputComponent> output, Task openmrsTask) {
