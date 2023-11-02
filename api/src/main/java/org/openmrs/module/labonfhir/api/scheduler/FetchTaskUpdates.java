@@ -216,7 +216,8 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 						}
 					}
 					catch (ResourceNotFoundException e) {
-						log.error("Could not Fetch ServiceRequest/" + serviceRequestUuid + ":" + e.toString() + getStackTrace(e));
+						log.error(
+						    "Could not Fetch ServiceRequest/" + serviceRequestUuid + ":" + e.toString() + getStackTrace(e));
 					}
 				}
 			}
