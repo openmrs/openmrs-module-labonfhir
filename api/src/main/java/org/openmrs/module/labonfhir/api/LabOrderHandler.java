@@ -52,7 +52,7 @@ public class LabOrderHandler {
 				mappedTestsExist = true;
 			}
 		}
-
+		
 		if (!mappedTestsExist && config.filterOrderByTestUuuids()) {
 			return null;
 		}
@@ -85,26 +85,31 @@ public class LabOrderHandler {
 		// Create References
 		List<Reference> basedOnRefs = Collections.singletonList(
 				newReference(order.getUuid(), FhirConstants.SERVICE_REQUEST));
-
+		
 		Reference forReference = newReference(order.getPatient().getUuid(), FhirConstants.PATIENT);
-
+		
 		Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
-
+		
 		Reference encounterRef = newReference(order.getEncounter().getUuid(), FhirConstants.ENCOUNTER);
-
+		
 		Optional<EncounterProvider> requesterProvider = order.getEncounter().getActiveEncounterProviders().stream()
 				.findFirst();
-
+		
 		Reference requesterRef = requesterProvider.map(
 				encounterProvider -> newReference(encounterProvider.getUuid(), FhirConstants.PRACTITIONER)).orElse(null);
-
+		
+		Reference locationRef = null;
+		if (order.getEncounter().getLocation() != null) {
+			locationRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.LOCATION);
+		}
+		
 		// Create Task Resource for given Order
-		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef ,taskInputs);
+		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef ,taskInputs);
 
 		if (order.getEncounter().getActiveEncounterProviders().isEmpty()) {
 			newTask.setRequester(requesterRef);
 		}
-
+		
 		// Save the new Task Resource
 		try {
 			newTask = taskService.create(newTask);
@@ -116,7 +121,7 @@ public class LabOrderHandler {
 	}
 
 	private Task createTask(List<Reference> basedOnRefs, Reference forReference, Reference ownerRef,
-			Reference encounterRef ,List<Task.ParameterComponent> taskInputs) {
+			Reference encounterRef, Reference locationRef ,List<Task.ParameterComponent> taskInputs) {
 		Task newTask = new Task();
 		newTask.setStatus(Task.TaskStatus.REQUESTED);
 		newTask.setIntent(Task.TaskIntent.ORDER);
@@ -124,6 +129,7 @@ public class LabOrderHandler {
 		newTask.setFor(forReference);
 		newTask.setOwner(ownerRef);
 		newTask.setEncounter(encounterRef);
+		newTask.setLocation(locationRef);
 		if (taskInputs != null) {
 			newTask.setInput(taskInputs);
 		}
@@ -171,9 +177,9 @@ public class LabOrderHandler {
 				taskInputs.add(input);
 			}
 		}
-				
+		
 		// Create Task Resource for given Order
-		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef ,taskInputs);
+		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef ,taskInputs);
 		newTask.setLocation(locationRef);
 
 		if (!encounter.getActiveEncounterProviders().isEmpty()) {
