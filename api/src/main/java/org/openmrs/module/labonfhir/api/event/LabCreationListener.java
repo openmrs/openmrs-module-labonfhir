@@ -86,13 +86,14 @@ public abstract class LabCreationListener implements EventListener {
 		includes.add(new Include("Task:owner"));
 		includes.add(new Include("Task:encounter"));
 		includes.add(new Include("Task:based-on"));
+		includes.add(new Include("Task:location"));
 
 		IBundleProvider labBundle = fhirTaskService.searchForTasks(new TaskSearchParams(null, null, null, uuid, null, null, includes));
 
 		Bundle transactionBundle = new Bundle();
 		transactionBundle.setType(Bundle.BundleType.TRANSACTION);
 		List<IBaseResource> labResources = labBundle.getAllResources();
-		if (!task.getLocation().isEmpty() && config.getLabUpdateTriggerObject().equals("Encounter")) {
+		if (!task.getLocation().isEmpty()) {
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
 		}
 		for (IBaseResource r : labResources) {
