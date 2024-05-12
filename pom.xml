@@ -22,7 +22,7 @@
     <connection>scm:git:git@bitbucket.org:botswana-emrs/openmrs-module-labonfhir.git</connection>
     <developerConnection>scm:git:git@bitbucket.org:botswana-emrs/openmrs-module-labonfhir.git</developerConnection>
     <url>https://bitbucket.org/botswana-emrs/openmrs-module-labonfhir</url>
-     <tag>1.4.1</tag>
+     <tag>1.4.0</tag>
   </scm>
 
   <developers>
