@@ -257,4 +257,17 @@
     <openmrsPlatformVersion>2.3.1</openmrsPlatformVersion>
     <hapifhirVersion>4.2.0</hapifhirVersion>
   </properties>
+  <distributionManagement>
+        <!-- Deploy to Github Packages -->
+        <snapshotRepository>
+          <id>repsy</id>
+          <name>My Private Maven Repository on Repsy</name>
+          <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
+        </snapshotRepository>
+        <repository>
+          <id>repsy</id>
+          <name>My Private Maven Repository on Repsy</name>
+          <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
+        </repository>
+  </distributionManagement>
 </project>
