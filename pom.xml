@@ -22,7 +22,7 @@
     <connection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</connection>
     <developerConnection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</developerConnection>
     <url>https://github.com/openmrs/openmrs-module-labonfhir/</url>
-     <tag>HEAD</tag>
+     <tag>1.4.0</tag>
   </scm>
 
   <developers>
