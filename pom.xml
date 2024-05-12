@@ -202,6 +202,11 @@
 
   <repositories>
     <repository>
+        <id>repsy</id>
+        <name>Maven Repository on Repsy</name>
+        <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
+    </repository>
+    <repository>
       <id>openmrs-repo</id>
       <name>OpenMRS Nexus Repository</name>
       <url>https://mavenrepo.openmrs.org/nexus/content/repositories/public</url>
@@ -229,18 +234,16 @@
       <id>github-packages</id>
       <distributionManagement>
         <!-- Deploy to Github Packages -->
-        <repository>
-          <id>github-packages</id>
-          <name>Github Maven Repo</name>
-          <url>https://maven.pkg.github.com/openmrs/openmrs-module-labonfhir</url>
-          <uniqueVersion>false</uniqueVersion>
-        </repository>
         <snapshotRepository>
-          <id>github-packages</id>
-          <name>Github Maven Repo</name>
-          <url>https://maven.pkg.github.com/openmrs/openmrs-module-labonfhir</url>
-          <uniqueVersion>true</uniqueVersion>
+          <id>repsy</id>
+          <name>My Private Maven Repository on Repsy</name>
+          <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
         </snapshotRepository>
+        <repository>
+          <id>repsy</id>
+          <name>My Private Maven Repository on Repsy</name>
+          <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
+        </repository>
       </distributionManagement>
     </profile>
   </profiles>
