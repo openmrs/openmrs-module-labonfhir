@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -17,7 +16,6 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.Encounter;
-import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.api.db.DAOException;
@@ -92,23 +90,16 @@ public class LabOrderHandler {
 		
 		Reference encounterRef = newReference(order.getEncounter().getUuid(), FhirConstants.ENCOUNTER);
 		
-		Optional<EncounterProvider> requesterProvider = order.getEncounter().getActiveEncounterProviders().stream()
-				.findFirst();
+		Reference requesterRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.ORGANIZATION);
 		
-		Reference requesterRef = requesterProvider.map(
-				encounterProvider -> newReference(encounterProvider.getUuid(), FhirConstants.PRACTITIONER)).orElse(null);
-		
-		Reference locationRef = null;
-		if (order.getEncounter().getLocation() != null) {
-			locationRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.LOCATION);
-		}
+		// Reference locationRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.LOCATION);
 		
 		// Create Task Resource for given Order
-		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef ,taskInputs);
+		Task newTask = createTask(basedOnRefs, forReference, null, encounterRef, null,requesterRef ,taskInputs);
 
-		if (order.getEncounter().getActiveEncounterProviders().isEmpty()) {
-			newTask.setRequester(requesterRef);
-		}
+//		if (order.getEncounter().getLocation() != null) {
+//			newTask.setRequester(requesterRef);
+//		}
 		
 		// Save the new Task Resource
 		try {
@@ -121,7 +112,7 @@ public class LabOrderHandler {
 	}
 
 	private Task createTask(List<Reference> basedOnRefs, Reference forReference, Reference ownerRef,
-			Reference encounterRef, Reference locationRef ,List<Task.ParameterComponent> taskInputs) {
+			Reference encounterRef, Reference locationRef, Reference organizationRef ,List<Task.ParameterComponent> taskInputs) {
 		Task newTask = new Task();
 		newTask.setStatus(Task.TaskStatus.REQUESTED);
 		newTask.setIntent(Task.TaskIntent.ORDER);
@@ -130,6 +121,7 @@ public class LabOrderHandler {
 		newTask.setOwner(ownerRef);
 		newTask.setEncounter(encounterRef);
 		newTask.setLocation(locationRef);
+		newTask.setRequester(organizationRef);
 		if (taskInputs != null) {
 			newTask.setInput(taskInputs);
 		}
@@ -160,11 +152,7 @@ public class LabOrderHandler {
 
 		Reference locationRef = newReference(encounter.getLocation().getUuid(), FhirConstants.LOCATION);
 
-		Optional<EncounterProvider> requesterProvider = encounter.getActiveEncounterProviders().stream().findFirst();
-
-		Reference requesterRef = requesterProvider.isPresent() ?
-				newReference(requesterProvider.get().getUuid(), FhirConstants.PRACTITIONER) :
-				null;
+		Reference requesterRef = newReference(encounter.getLocation().getUuid(), FhirConstants.ORGANIZATION);
 
 		List<Task.ParameterComponent> taskInputs = null;
 		if (config.addObsAsTaskInput()) {
@@ -179,12 +167,20 @@ public class LabOrderHandler {
 		}
 		
 		// Create Task Resource for given Order
-		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef ,taskInputs);
-		newTask.setLocation(locationRef);
+		// =========================================
+		// Summary of Payload requirements in terms of location and organization:
+		// Payload coming from OpenMRS should include only the Location and Organization resources corresponding to the MFL-based location that represents the physical spot where a lab order is being collected. This MFL code will then be mapped to the proper IPMS location (in some cases based on the type of test being ordered as well)
+		// The incoming Location should reference the Organization as a managing organization, just like a normal Org/Location pair
+		// For the incoming task resource:
+		// `for` should reference the patient
+		// `requester` should reference the Organization
+		// `owner` and `location` can be left blank
+		// Once the task is processed, owner will reference the mapped IPMS Organization, and location the IPMS location.
+		// Leave the `location ref` and `owner ref` blank. Once the task is processed, owner will reference the mapped Lab Systems Organization, and location the Lab System's location.
+		Task newTask = createTask(basedOnRefs, forReference, null, encounterRef, null, requesterRef, taskInputs);
+		//newTask.setLocation(locationRef);
 
-		if (!encounter.getActiveEncounterProviders().isEmpty()) {
-			newTask.setRequester(requesterRef);
-		}
+		//newTask.setRequester(requesterRef);
 
 		// Save the new Task Resource
 		try {

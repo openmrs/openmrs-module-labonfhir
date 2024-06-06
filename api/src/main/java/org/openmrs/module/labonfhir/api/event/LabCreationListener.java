@@ -13,7 +13,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 import org.hl7.fhir.r4.model.Location;
-
+import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
@@ -101,6 +101,7 @@ public abstract class LabCreationListener implements EventListener {
 		includes.add(new Include("Task:encounter"));
 		includes.add(new Include("Task:based-on"));
 		includes.add(new Include("Task:location"));
+		includes.add(new Include("Task:requester"));
 
 		IBundleProvider labBundle = fhirTaskService.searchForTasks(new TaskSearchParams(null, null, null, uuid, null, null, includes));
 
@@ -111,14 +112,19 @@ public abstract class LabCreationListener implements EventListener {
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
 		}
 
+		if (!task.getRequester().isEmpty()) {
+			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getRequester().getReference()).get()));
+		}
+
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
 			
 			// if resource is location, add MFL Code as location identifier
 			// TODO: Short term:  Make the MFL Location attribute type to be a Global config variable
-			// TODO: Long term: Make the location translator pick enrich the MFL Code as appropriate
+			// TODO: Long term: Make the location translator pick and enrich the MFL Code as appropriate
 			
-			if (resource instanceof Location) {
+			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
+			if (resource instanceof Location || resource instanceof Organization) {
 				Location location = (Location) resource;
 				if (location != null) {
 					org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(location.getId());
@@ -128,19 +134,20 @@ public abstract class LabCreationListener implements EventListener {
 						if (!locationAttributeTypes.isEmpty()) {
 							locationAttributeTypes.stream().filter(locationAttribute -> locationAttribute.getAttributeType().equals(mflLocationAttributeType)).findFirst().ifPresent(locationAttribute -> {
 								String mflCode = (String) locationAttribute.getValue();
-		
+
 								Identifier mflIdentifier = new Identifier();
 								mflIdentifier.setSystem(MFL_LOCATION_IDENTIFIER_URI); 
 								mflIdentifier.setValue(mflCode); 
 								location.addIdentifier(mflIdentifier);
+								component.setResource(location);
 							});
 						}
 					}
 				}
+			} else {
+				component.setResource(resource);	
 			}
 
-			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
-			component.setResource(resource);
 			component.getRequest().setUrl(resource.fhirType() + "/" + resource.getIdElement().getIdPart())
 			        .setMethod(Bundle.HTTPVerb.PUT);
 
