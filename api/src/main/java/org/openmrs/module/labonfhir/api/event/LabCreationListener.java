@@ -125,23 +125,27 @@ public abstract class LabCreationListener implements EventListener {
 			
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
 			if (resource instanceof Location || resource instanceof Organization) {
-				Location location = (Location) resource;
-				if (location != null) {
-					org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(location.getId());
-					if (openmrsLocation != null) {
-						LocationAttributeType mflLocationAttributeType = locationService.getLocationAttributeTypeByUuid(MFL_LOCATION_ATTRIBUTE_TYPE_UUID);
-						Collection<LocationAttribute> locationAttributeTypes = openmrsLocation.getActiveAttributes();
-						if (!locationAttributeTypes.isEmpty()) {
-							locationAttributeTypes.stream().filter(locationAttribute -> locationAttribute.getAttributeType().equals(mflLocationAttributeType)).findFirst().ifPresent(locationAttribute -> {
-								String mflCode = (String) locationAttribute.getValue();
+				org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(location.getId());
+				if (openmrsLocation != null) {
+					LocationAttributeType mflLocationAttributeType = locationService.getLocationAttributeTypeByUuid(MFL_LOCATION_ATTRIBUTE_TYPE_UUID);
+					Collection<LocationAttribute> locationAttributeTypes = openmrsLocation.getActiveAttributes();
+					if (!locationAttributeTypes.isEmpty()) {
+						locationAttributeTypes.stream().filter(locationAttribute -> locationAttribute.getAttributeType().equals(mflLocationAttributeType)).findFirst().ifPresent(locationAttribute -> {
+							String mflCode = (String) locationAttribute.getValue();
 
-								Identifier mflIdentifier = new Identifier();
-								mflIdentifier.setSystem(MFL_LOCATION_IDENTIFIER_URI); 
-								mflIdentifier.setValue(mflCode); 
+							Identifier mflIdentifier = new Identifier();
+							mflIdentifier.setSystem(MFL_LOCATION_IDENTIFIER_URI); 
+							mflIdentifier.setValue(mflCode); 
+							if (resource instanceof Organization) {
+								Organization organization = (Organization) resource;
+								organization.addIdentifier(mflIdentifier);
+								component.setResource(organization);
+							} else if (resource instanceof Location) {
+								Location location = (Location) resource;
 								location.addIdentifier(mflIdentifier);
 								component.setResource(location);
-							});
-						}
+							}
+						});
 					}
 				}
 			} else {
