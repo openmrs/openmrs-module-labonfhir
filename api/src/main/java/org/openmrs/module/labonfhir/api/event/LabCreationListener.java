@@ -125,7 +125,7 @@ public abstract class LabCreationListener implements EventListener {
 			
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
 			if (resource instanceof Location || resource instanceof Organization) {
-				org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(location.getId());
+				org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(resource.getId());
 				if (openmrsLocation != null) {
 					LocationAttributeType mflLocationAttributeType = locationService.getLocationAttributeTypeByUuid(MFL_LOCATION_ATTRIBUTE_TYPE_UUID);
 					Collection<LocationAttribute> locationAttributeTypes = openmrsLocation.getActiveAttributes();

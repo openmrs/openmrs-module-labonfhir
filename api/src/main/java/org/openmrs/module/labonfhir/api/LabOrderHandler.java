@@ -85,9 +85,7 @@ public class LabOrderHandler {
 				newReference(order.getUuid(), FhirConstants.SERVICE_REQUEST));
 		
 		Reference forReference = newReference(order.getPatient().getUuid(), FhirConstants.PATIENT);
-		
-		Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
-		
+				
 		Reference encounterRef = newReference(order.getEncounter().getUuid(), FhirConstants.ENCOUNTER);
 		
 		Reference requesterRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.ORGANIZATION);
@@ -112,7 +110,7 @@ public class LabOrderHandler {
 	}
 
 	private Task createTask(List<Reference> basedOnRefs, Reference forReference, Reference ownerRef,
-			Reference encounterRef, Reference locationRef, Reference organizationRef ,List<Task.ParameterComponent> taskInputs) {
+			Reference encounterRef, Reference locationRef, Reference requesterRef ,List<Task.ParameterComponent> taskInputs) {
 		Task newTask = new Task();
 		newTask.setStatus(Task.TaskStatus.REQUESTED);
 		newTask.setIntent(Task.TaskIntent.ORDER);
@@ -121,7 +119,7 @@ public class LabOrderHandler {
 		newTask.setOwner(ownerRef);
 		newTask.setEncounter(encounterRef);
 		newTask.setLocation(locationRef);
-		newTask.setRequester(organizationRef);
+		newTask.setRequester(requesterRef);
 		if (taskInputs != null) {
 			newTask.setInput(taskInputs);
 		}
