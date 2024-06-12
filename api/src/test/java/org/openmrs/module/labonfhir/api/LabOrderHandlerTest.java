@@ -99,6 +99,6 @@ public class LabOrderHandlerTest {
 		// Assert that the task is not null
 		assertThat(task, notNullValue());
 		assertThat(task.hasRequester(), is(true));
-		assertThat(task.getRequester().getIdentifier().getIdElement(), is("locationUuid"));
+		assertThat(task.getRequester().getReferenceElement().getIdPart(), is("locationUuid"));
 	}
 }
