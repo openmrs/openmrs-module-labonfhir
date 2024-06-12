@@ -9,7 +9,7 @@
 
   <groupId>org.openmrs.module</groupId>
   <artifactId>labonfhir</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
+  <version>1.4.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Lab on FHIR</name>
   <description>A module to support lab order communication between OpenMRS and an LIS like OpenELIS using FHIR-based
@@ -19,10 +19,10 @@
   <url>https://wiki.openmrs.org/x/FQ4z</url>
 
   <scm>
-    <connection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</connection>
-    <developerConnection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</developerConnection>
-    <url>https://github.com/openmrs/openmrs-module-labonfhir/</url>
-     <tag>HEAD</tag>
+    <connection>scm:git:git@bitbucket.org:botswana-emrs/openmrs-module-labonfhir.git</connection>
+    <developerConnection>scm:git:git@bitbucket.org:botswana-emrs/openmrs-module-labonfhir.git</developerConnection>
+    <url>https://bitbucket.org/botswana-emrs/openmrs-module-labonfhir</url>
+     <tag>1.4.0</tag>
   </scm>
 
   <developers>
@@ -79,7 +79,13 @@
         <classifier>tests</classifier>
         <scope>test</scope>
 		</dependency>
-      <dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>3.12.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
         <version>1.18.12</version>
@@ -202,6 +208,11 @@
 
   <repositories>
     <repository>
+        <id>repsy</id>
+        <name>Maven Repository on Repsy</name>
+        <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
+    </repository>
+    <repository>
       <id>openmrs-repo</id>
       <name>OpenMRS Nexus Repository</name>
       <url>https://mavenrepo.openmrs.org/nexus/content/repositories/public</url>
@@ -229,18 +240,16 @@
       <id>github-packages</id>
       <distributionManagement>
         <!-- Deploy to Github Packages -->
-        <repository>
-          <id>github-packages</id>
-          <name>Github Maven Repo</name>
-          <url>https://maven.pkg.github.com/openmrs/openmrs-module-labonfhir</url>
-          <uniqueVersion>false</uniqueVersion>
-        </repository>
         <snapshotRepository>
-          <id>github-packages</id>
-          <name>Github Maven Repo</name>
-          <url>https://maven.pkg.github.com/openmrs/openmrs-module-labonfhir</url>
-          <uniqueVersion>true</uniqueVersion>
+          <id>repsy</id>
+          <name>My Private Maven Repository on Repsy</name>
+          <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
         </snapshotRepository>
+        <repository>
+          <id>repsy</id>
+          <name>My Private Maven Repository on Repsy</name>
+          <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
+        </repository>
       </distributionManagement>
     </profile>
   </profiles>
@@ -254,4 +263,17 @@
     <openmrsPlatformVersion>2.3.1</openmrsPlatformVersion>
     <hapifhirVersion>4.2.0</hapifhirVersion>
   </properties>
+  <distributionManagement>
+        <!-- Deploy to Github Packages -->
+        <snapshotRepository>
+          <id>repsy</id>
+          <name>My Private Maven Repository on Repsy</name>
+          <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
+        </snapshotRepository>
+        <repository>
+          <id>repsy</id>
+          <name>My Private Maven Repository on Repsy</name>
+          <url>https://repo.repsy.io/mvn/intellisoftdev/default</url>
+        </repository>
+  </distributionManagement>
 </project>
