@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import lombok.Setter;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.DecimalType;
@@ -30,13 +31,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class LabOrderHandler {
 
-	@Autowired
+	@Setter(onMethod_ = {@Autowired})
 	private LabOnFhirConfig config;
 
-	@Autowired
+	@Setter(onMethod_ = {@Autowired})
 	private FhirTaskService taskService;
 
-	@Autowired
+	@Setter(onMethod_ = {@Autowired})
 	private FhirObservationService observationService;
 
 	public Task createOrder(Order order) throws OrderCreationException {
@@ -68,7 +69,7 @@ public class LabOrderHandler {
 					CodeableConcept concept = (CodeableConcept) observation.getValue();
 					input.setValue(new StringType().setValue(concept.getCodingFirstRep().getDisplay()));
 				} else if (observation.getValue() instanceof Quantity) {
-					Double quantity = ((Quantity) observation.getValue()).getValue().doubleValue();
+					double quantity = ((Quantity) observation.getValue()).getValue().doubleValue();
 					DecimalType decimal = new DecimalType();
 					decimal.setValue(quantity);
 					input.setValue(decimal);

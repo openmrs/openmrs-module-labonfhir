@@ -12,6 +12,7 @@ import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import lombok.Setter;
 import org.hl7.fhir.r4.model.Location;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.instance.model.api.IBaseResource;
@@ -45,7 +46,8 @@ public abstract class LabCreationListener implements EventListener {
 
 	private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
 
-	private DaemonToken daemonToken;
+	@Setter
+    private DaemonToken daemonToken;
 
 	@Autowired
 	@Qualifier("labOrderFhirClient")
@@ -69,16 +71,8 @@ public abstract class LabCreationListener implements EventListener {
 
 	@Autowired
 	private LocationService locationService;
-	
-	public DaemonToken getDaemonToken() {
-		return daemonToken;
-	}
 
-	public void setDaemonToken(DaemonToken daemonToken) {
-		this.daemonToken = daemonToken;
-	}
-
-	@Override
+    @Override
 	public void onMessage(Message message) {
 		log.trace("Received message {}", message);
 
@@ -125,7 +119,7 @@ public abstract class LabCreationListener implements EventListener {
 			
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
 			if (resource instanceof Location || resource instanceof Organization) {
-				org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(location.getId());
+				org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(resource.getId());
 				if (openmrsLocation != null) {
 					LocationAttributeType mflLocationAttributeType = locationService.getLocationAttributeTypeByUuid(MFL_LOCATION_ATTRIBUTE_TYPE_UUID);
 					Collection<LocationAttribute> locationAttributeTypes = openmrsLocation.getActiveAttributes();
@@ -135,12 +129,13 @@ public abstract class LabCreationListener implements EventListener {
 
 							Identifier mflIdentifier = new Identifier();
 							mflIdentifier.setSystem(MFL_LOCATION_IDENTIFIER_URI); 
-							mflIdentifier.setValue(mflCode); 
+							mflIdentifier.setValue(mflCode);
+
 							if (resource instanceof Organization) {
 								Organization organization = (Organization) resource;
 								organization.addIdentifier(mflIdentifier);
 								component.setResource(organization);
-							} else if (resource instanceof Location) {
+							} else {
 								Location location = (Location) resource;
 								location.addIdentifier(mflIdentifier);
 								component.setResource(location);
