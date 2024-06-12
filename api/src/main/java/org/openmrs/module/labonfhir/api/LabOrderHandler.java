@@ -107,7 +107,7 @@ public class LabOrderHandler {
 			newTask = taskService.create(newTask);
 		}
 		catch (DAOException e) {
-			throw new OrderCreationException("Exception occurred while creating task for order " + order.getId());
+			throw new OrderCreationException("Exception occurred while creating task for order " + order.getId(), e);
 		}
 		return newTask;
 	}
@@ -188,7 +188,7 @@ public class LabOrderHandler {
 			newTask = taskService.create(newTask);
 		}
 		catch (DAOException e) {
-			throw new OrderCreationException("Exception occurred while creating task for encounter " + encounter.getId());
+			throw new OrderCreationException("Exception occurred while creating task for encounter " + encounter.getId(), e);
 		}
 		return newTask;
 	}
