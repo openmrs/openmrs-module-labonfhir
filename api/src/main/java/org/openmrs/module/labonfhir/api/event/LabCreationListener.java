@@ -1,6 +1,8 @@
 package org.openmrs.module.labonfhir.api.event;
 
 import javax.jms.Message;
+
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
@@ -10,10 +12,17 @@ import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import lombok.Setter;
+import org.hl7.fhir.r4.model.Location;
+import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Task;
+import org.openmrs.LocationAttribute;
+import org.openmrs.LocationAttributeType;
+import org.openmrs.api.LocationService;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
@@ -31,9 +40,14 @@ import org.openmrs.module.fhir2.api.search.param.TaskSearchParams;
 
 public abstract class LabCreationListener implements EventListener {
 
+	private static final String MFL_LOCATION_IDENTIFIER_URI = "http://moh.bw.org/ext/location/identifier/mfl";
+
+	private static final String MFL_LOCATION_ATTRIBUTE_TYPE_UUID = "8a845a89-6aa5-4111-81d3-0af31c45c002";
+
 	private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
 
-	private DaemonToken daemonToken;
+	@Setter
+    private DaemonToken daemonToken;
 
 	@Autowired
 	@Qualifier("labOrderFhirClient")
@@ -47,31 +61,25 @@ public abstract class LabCreationListener implements EventListener {
 	private FhirContext ctx;
 
 	@Autowired
-	FhirLocationService fhirLocationService ;
+	FhirLocationService fhirLocationService;
 
 	@Autowired
 	private FhirTaskService fhirTaskService;
 
 	@Autowired
-	private LabOnFhirService labOnFhirService ;
+	private LabOnFhirService labOnFhirService;
 
-	public DaemonToken getDaemonToken() {
-		return daemonToken;
-	}
+	@Autowired
+	private LocationService locationService;
 
-	public void setDaemonToken(DaemonToken daemonToken) {
-		this.daemonToken = daemonToken;
-	}
-
-	@Override
+    @Override
 	public void onMessage(Message message) {
 		log.trace("Received message {}", message);
 
 		Daemon.runInDaemonThread(() -> {
 			try {
 				processMessage(message);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				log.error("Failed to update the user's last viewed patients property", e);
 			}
 		}, daemonToken);
@@ -87,6 +95,7 @@ public abstract class LabCreationListener implements EventListener {
 		includes.add(new Include("Task:encounter"));
 		includes.add(new Include("Task:based-on"));
 		includes.add(new Include("Task:location"));
+		includes.add(new Include("Task:requester"));
 
 		IBundleProvider labBundle = fhirTaskService.searchForTasks(new TaskSearchParams(null, null, null, uuid, null, null, includes));
 
@@ -96,10 +105,48 @@ public abstract class LabCreationListener implements EventListener {
 		if (!task.getLocation().isEmpty()) {
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
 		}
+
+		if (!task.getRequester().isEmpty()) {
+			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getRequester().getReference()).get()));
+		}
+
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
+			
+			// if resource is location, add MFL Code as location identifier
+			// TODO: Short term:  Make the MFL Location attribute type to be a Global config variable
+			// TODO: Long term: Make the location translator pick and enrich the MFL Code as appropriate
+			
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
-			component.setResource(resource);
+			if (resource instanceof Location || resource instanceof Organization) {
+				org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(resource.getId());
+				if (openmrsLocation != null) {
+					LocationAttributeType mflLocationAttributeType = locationService.getLocationAttributeTypeByUuid(MFL_LOCATION_ATTRIBUTE_TYPE_UUID);
+					Collection<LocationAttribute> locationAttributeTypes = openmrsLocation.getActiveAttributes();
+					if (!locationAttributeTypes.isEmpty()) {
+						locationAttributeTypes.stream().filter(locationAttribute -> locationAttribute.getAttributeType().equals(mflLocationAttributeType)).findFirst().ifPresent(locationAttribute -> {
+							String mflCode = (String) locationAttribute.getValue();
+
+							Identifier mflIdentifier = new Identifier();
+							mflIdentifier.setSystem(MFL_LOCATION_IDENTIFIER_URI); 
+							mflIdentifier.setValue(mflCode);
+
+							if (resource instanceof Organization) {
+								Organization organization = (Organization) resource;
+								organization.addIdentifier(mflIdentifier);
+								component.setResource(organization);
+							} else {
+								Location location = (Location) resource;
+								location.addIdentifier(mflIdentifier);
+								component.setResource(location);
+							}
+						});
+					}
+				}
+			} else {
+				component.setResource(resource);	
+			}
+
 			component.getRequest().setUrl(resource.fhirType() + "/" + resource.getIdElement().getIdPart())
 			        .setMethod(Bundle.HTTPVerb.PUT);
 
@@ -113,8 +160,7 @@ public abstract class LabCreationListener implements EventListener {
 				Bundle labBundle = createLabBundle(task);
 				try {
 					client.transaction().withBundle(labBundle).execute();
-				}
-				catch (Exception e) {
+				} catch (Exception e) {
 					saveFailedTask(task.getIdElement().getIdPart(), e.getMessage());
 					log.error("Failed to send Task with UUID " + task.getIdElement().getIdPart(), e);
 				}
@@ -123,7 +169,7 @@ public abstract class LabCreationListener implements EventListener {
 		}
 	}
 
-	private void saveFailedTask(String taskUuid ,String error) {
+	private void saveFailedTask(String taskUuid, String error) {
 		FailedTask failedTask = new FailedTask();
 		failedTask.setError(error);
 		failedTask.setIsSent(false);
