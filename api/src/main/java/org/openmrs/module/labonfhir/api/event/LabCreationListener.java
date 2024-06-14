@@ -1,6 +1,9 @@
 package org.openmrs.module.labonfhir.api.event;
 
 import javax.jms.Message;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -10,13 +13,22 @@ import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+
+import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Location;
+import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Task;
+import org.openmrs.LocationAttribute;
+import org.openmrs.LocationAttributeType;
+import org.openmrs.api.LocationService;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
+import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirLocationService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.util.FhirUtils;
@@ -27,11 +39,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.openmrs.module.fhir2.api.search.param.TaskSearchParams;
 
 public abstract class LabCreationListener implements EventListener {
 
 	private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
+
+	private static final String MFL_LOCATION_IDENTIFIER_URI = "http://moh.bw.org/ext/location/identifier/mfl";
+
+	private static final String MFL_LOCATION_ATTRIBUTE_TYPE_UUID = "8a845a89-6aa5-4111-81d3-0af31c45c002";
 
 	private DaemonToken daemonToken;
 
@@ -54,6 +71,9 @@ public abstract class LabCreationListener implements EventListener {
 
 	@Autowired
 	private LabOnFhirService labOnFhirService ;
+
+	@Autowired
+	private LocationService locationService;
 
 	public DaemonToken getDaemonToken() {
 		return daemonToken;
@@ -93,8 +113,33 @@ public abstract class LabCreationListener implements EventListener {
 		transactionBundle.setType(Bundle.BundleType.TRANSACTION);
 		List<IBaseResource> labResources = labBundle.getAllResources();
 		if (!task.getLocation().isEmpty() && config.getLabUpdateTriggerObject().equals("Encounter")) {
+			org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(task.getLocation().getId());
+			Identifier mflIdentifier = new Identifier();
+
+			if (openmrsLocation != null) {
+				LocationAttributeType mflLocationAttributeType = locationService.getLocationAttributeTypeByUuid(MFL_LOCATION_ATTRIBUTE_TYPE_UUID);
+				Collection<LocationAttribute> locationAttributeTypes = openmrsLocation.getActiveAttributes();
+				if (!locationAttributeTypes.isEmpty()) {
+					locationAttributeTypes.stream().filter(locationAttribute -> locationAttribute.getAttributeType().equals(mflLocationAttributeType)).findFirst().ifPresent(locationAttribute -> {
+						String mflCode = (String) locationAttribute.getValue();
+
+						mflIdentifier.setSystem(MFL_LOCATION_IDENTIFIER_URI); 
+						mflIdentifier.setValue(mflCode); 
+					});
+				}
+			}
+			Organization organization = new Organization();
+			organization.setIdentifier(Collections.singletonList(mflIdentifier));
+			organization.setName(task.getLocation().getDisplay());
+
+			Reference organizationReference = new Reference().setReference(FhirConstants.ORGANIZATION + "/" + uuid).setType(FhirConstants.ORGANIZATION);
+
+			Location location = fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get());
+			organization.setIdentifier(Collections.singletonList(mflIdentifier));
+			location.setManagingOrganization(organizationReference);
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
 		}
+
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();

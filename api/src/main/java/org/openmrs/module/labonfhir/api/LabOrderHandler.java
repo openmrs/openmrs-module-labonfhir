@@ -96,7 +96,7 @@ public class LabOrderHandler {
 				.findFirst();
 
 		Reference requesterRef = requesterProvider.map(
-				encounterProvider -> newReference(encounterProvider.getUuid(), FhirConstants.PRACTITIONER)).orElse(null);
+				encounterProvider -> newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.ORGANIZATION)).orElse(null);
 
 		// Create Task Resource for given Order
 		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef ,taskInputs);
