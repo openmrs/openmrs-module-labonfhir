@@ -4,17 +4,43 @@ import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.jms.Message;
 
+import static org.openmrs.module.labonfhir.api.event.LabCreationListener.MFL_LOCATION_ATTRIBUTE_TYPE_UUID;
+import static org.openmrs.module.labonfhir.api.event.LabCreationListener.MFL_LOCATION_IDENTIFIER_URI;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+
+import ca.uhn.fhir.model.api.Include;
+import ca.uhn.fhir.rest.api.server.IBundleProvider;
+import ca.uhn.fhir.rest.param.TokenAndListParam;
+import ca.uhn.fhir.rest.param.TokenParam;
 import org.apache.commons.lang3.StringUtils;
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Location;
+import org.hl7.fhir.r4.model.Organization;
+import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Task;
+import org.openmrs.LocationAttribute;
+import org.openmrs.LocationAttributeType;
 import org.openmrs.Order;
 import org.openmrs.TestOrder;
 import org.openmrs.api.APIException;
+import org.openmrs.api.LocationService;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.fhir2.FhirConstants;
+import org.openmrs.module.fhir2.api.FhirTaskService;
+import org.openmrs.module.fhir2.api.util.FhirUtils;
 import org.openmrs.module.labonfhir.api.LabOrderHandler;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.openmrs.module.fhir2.api.search.param.TaskSearchParams;
 import org.springframework.stereotype.Component;
 
 @Component("labOrderListener")
@@ -24,9 +50,15 @@ public class OrderCreationListener extends LabCreationListener {
 
 	@Autowired
 	private OrderService orderService;
+
+	@Autowired
+	private LocationService locationService;
 	
 	@Autowired
 	private LabOrderHandler handler;
+	
+	@Autowired
+	private FhirTaskService fhirTaskService;
 
 	@Override
 	public void processMessage(Message message) {
@@ -68,5 +100,37 @@ public class OrderCreationListener extends LabCreationListener {
 				log.error("An exception occurred while trying to create the order for order {}", order, e);
 			}
 		}
+	}
+	
+	public Bundle createLabBundle(Task task) {
+		TokenAndListParam uuid = new TokenAndListParam().addAnd(new TokenParam(task.getIdElement().getIdPart()));
+		HashSet<Include> includes = new HashSet<>();
+		includes.add(new Include("Task:patient"));
+		includes.add(new Include("Task:owner"));
+		includes.add(new Include("Task:encounter"));
+		includes.add(new Include("Task:based-on"));
+		includes.add(new Include("Task:location"));
+		includes.add(new Include("Task:practitioner"));
+
+
+		IBundleProvider labBundle = fhirTaskService.searchForTasks(new TaskSearchParams(null, null, null, uuid, null, null, includes));
+		
+		Bundle transactionBundle = new Bundle();
+		transactionBundle.setType(Bundle.BundleType.TRANSACTION);
+		List<IBaseResource> labResources = labBundle.getAllResources();
+		if (task.getLocation() != null) {
+			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
+		}
+		addOrganizationToResourceBundle(task, labResources);
+
+		for (IBaseResource r : labResources) {
+			Resource resource = (Resource) r;
+			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
+			component.setResource(resource);
+			component.getRequest().setUrl(resource.fhirType() + "/" + resource.getIdElement().getIdPart())
+					.setMethod(Bundle.HTTPVerb.PUT);
+			
+		}
+		return transactionBundle;
 	}
 }

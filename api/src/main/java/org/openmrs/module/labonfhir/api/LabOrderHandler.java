@@ -92,18 +92,19 @@ public class LabOrderHandler {
 
 		Reference encounterRef = newReference(order.getEncounter().getUuid(), FhirConstants.ENCOUNTER);
 
-		Optional<EncounterProvider> requesterProvider = order.getEncounter().getActiveEncounterProviders().stream()
-				.findFirst();
+		Reference locationRef = null;
 
-		Reference requesterRef = requesterProvider.map(
-				encounterProvider -> newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.ORGANIZATION)).orElse(null);
+		Reference requesterRef = null;
+		
+		if (order.getEncounter().getLocation() != null) {
+			requesterRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.ORGANIZATION);
+			locationRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.LOCATION);
+		}
+		// Optional<EncounterProvider> requesterProvider = order.getEncounter().getActiveEncounterProviders().stream()
+		//		.findFirst();
 
 		// Create Task Resource for given Order
-		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef ,taskInputs);
-
-		if (order.getEncounter().getActiveEncounterProviders().isEmpty()) {
-			newTask.setRequester(requesterRef);
-		}
+		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef,requesterRef ,taskInputs);
 
 		// Save the new Task Resource
 		try {
@@ -116,7 +117,7 @@ public class LabOrderHandler {
 	}
 
 	private Task createTask(List<Reference> basedOnRefs, Reference forReference, Reference ownerRef,
-			Reference encounterRef ,List<Task.ParameterComponent> taskInputs) {
+			Reference encounterRef , Reference locationRef,Reference requesterRef, List<Task.ParameterComponent> taskInputs) {
 		Task newTask = new Task();
 		newTask.setStatus(Task.TaskStatus.REQUESTED);
 		newTask.setIntent(Task.TaskIntent.ORDER);
@@ -124,6 +125,8 @@ public class LabOrderHandler {
 		newTask.setFor(forReference);
 		newTask.setOwner(ownerRef);
 		newTask.setEncounter(encounterRef);
+		newTask.setRequester(requesterRef);
+		newTask.setLocation(locationRef);
 		if (taskInputs != null) {
 			newTask.setInput(taskInputs);
 		}
@@ -154,11 +157,9 @@ public class LabOrderHandler {
 
 		Reference locationRef = newReference(encounter.getLocation().getUuid(), FhirConstants.LOCATION);
 
-		Optional<EncounterProvider> requesterProvider = encounter.getActiveEncounterProviders().stream().findFirst();
+		// Optional<EncounterProvider> requesterProvider = encounter.getActiveEncounterProviders().stream().findFirst();
 
-		Reference requesterRef = requesterProvider.isPresent() ?
-				newReference(requesterProvider.get().getUuid(), FhirConstants.PRACTITIONER) :
-				null;
+		Reference requesterRef = newReference(encounter.getLocation().getUuid(), FhirConstants.ORGANIZATION);
 
 		List<Task.ParameterComponent> taskInputs = null;
 		if (config.addObsAsTaskInput()) {
@@ -173,12 +174,9 @@ public class LabOrderHandler {
 		}
 				
 		// Create Task Resource for given Order
-		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef ,taskInputs);
+		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef,locationRef, requesterRef, taskInputs);
 		newTask.setLocation(locationRef);
-
-		if (!encounter.getActiveEncounterProviders().isEmpty()) {
-			newTask.setRequester(requesterRef);
-		}
+		newTask.setRequester(requesterRef);
 
 		// Save the new Task Resource
 		try {
