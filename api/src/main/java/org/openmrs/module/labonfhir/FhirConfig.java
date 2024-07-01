@@ -37,6 +37,8 @@ public class FhirConfig {
             configureFhirHttpClient(client);
         }
 
+        fhirContext.getRestfulClientFactory().setSocketTimeout(config.getFhirClientTimeout());
+
         IGenericClient fhirClient = fhirContext.newRestfulGenericClient(config.getLisUrl());
         if (config.getAuthType().equals(AuthType.BASIC)) {
             BasicAuthInterceptor authInterceptor = new BasicAuthInterceptor(config.getLisUserName(),

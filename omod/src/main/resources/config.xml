@@ -126,6 +126,12 @@
 	</globalProperty>
 
 	<globalProperty>
+		<property>@MODULE_ID@.clientTimeout</property>
+		<description>The Timeout period for the FHIR client.</description>
+		<defaultValue>180000</defaultValue>
+	</globalProperty>
+
+	<globalProperty>
 		<property>@MODULE_ID@.addObsAsTaskInput</property>
 		<description>Allows Adding Obs as Task Input</description>
 		<defaultValue>false</defaultValue>

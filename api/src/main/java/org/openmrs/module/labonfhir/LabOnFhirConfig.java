@@ -68,6 +68,8 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 
 	public static final String GP_FILTER_ORDER_BY_TEST_UUIDS = "labonfhir.filterOrderBytestUuids";
 
+	public static final String GP_FHIR_CLIENT_TIMEOUT = "labonfhir.clientTimeout";
+
 	public enum AuthType{
 		SSL,
 		BASIC
@@ -230,5 +232,10 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	public int getFhirClientTimeout() {
+		String fhirClientTimeout = administrationService.getGlobalProperty(GP_FHIR_CLIENT_TIMEOUT, "180000");
+		return Integer.valueOf(fhirClientTimeout);
 	}
 }
