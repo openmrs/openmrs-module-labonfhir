@@ -9,7 +9,7 @@
 
   <groupId>org.openmrs.module</groupId>
   <artifactId>labonfhir</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
+  <version>1.5.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Lab on FHIR</name>
   <description>A module to support lab order communication between OpenMRS and an LIS like OpenELIS using FHIR-based
@@ -245,7 +245,7 @@
     </profile>
   </profiles>
   <properties>
-    <fhir2Version>1.10.0</fhir2Version>
+    <fhir2Version>2.2.0</fhir2Version>
     <restVersion>2.26.0</restVersion>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
