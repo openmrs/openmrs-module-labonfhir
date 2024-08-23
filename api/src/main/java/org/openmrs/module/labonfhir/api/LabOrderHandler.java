@@ -27,9 +27,8 @@ import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
+
 public class LabOrderHandler {
 
 	@Autowired

@@ -15,9 +15,7 @@ import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component("labOrderListener")
 public class OrderCreationListener extends LabCreationListener {
 	
 	private static final Logger log = LoggerFactory.getLogger(OrderCreationListener.class);

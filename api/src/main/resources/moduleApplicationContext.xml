@@ -10,8 +10,15 @@
   		    http://www.springframework.org/schema/context
   		    http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-    <context:component-scan base-package="org.openmrs.module.labonfhir"/>
-
+    <bean id="labEncounterListener" class="org.openmrs.module.labonfhir.api.event.EncounterCreationListener"></bean>
+    <bean id="labOrderListener" class="org.openmrs.module.labonfhir.api.event.OrderCreationListener"></bean>
+    <bean id="labOnFhirActivator" class="org.openmrs.module.labonfhir.LabOnFhirActivator"></bean>
+    <bean id="fetchTaskUpdates" class="org.openmrs.module.labonfhir.api.scheduler.FetchTaskUpdates"></bean>
+    <bean id="retryFailedTasks" class="org.openmrs.module.labonfhir.api.scheduler.RetryFailedTasks"></bean>
+    <bean id ="labOrderManager" class="org.openmrs.module.labonfhir.api.LabOrderManager"></bean>
+    <bean id="labOrderHandler" class="org.openmrs.module.labonfhir.api.LabOrderHandler"></bean>
+    <bean id="labOnFhirConfig" class="org.openmrs.module.labonfhir.LabOnFhirConfig"></bean>
+          
     <bean parent="openmrsEventListeners">
         <property name="globalPropertyListeners">
             <list merge="true">
