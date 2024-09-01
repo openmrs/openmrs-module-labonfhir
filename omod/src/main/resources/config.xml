@@ -136,4 +136,10 @@
 		<description>Allows filtering Oders by Test Uuuids</description>
 		<defaultValue>true</defaultValue>
 	</globalProperty>
+
+	<globalProperty>
+		<property>@MODULE_ID@.labOrderingSiteConceptUuid</property>
+		<description>Lab ordering site concept uuid</description>
+		<defaultValue>232176a9-1a50-40cf-8813-506236fd34b7</defaultValue>
+	</globalProperty>
 </module>
