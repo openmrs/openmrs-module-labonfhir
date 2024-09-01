@@ -32,6 +32,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LabOnFhirConfig implements ApplicationContextAware {
 
+	private static final String LAB_ORDERING_SITE_CONCEPT_UUID = "labonfhir.labOrderLocationConceptUuid";
+
 	public static final String GP_LIS_URL = "labonfhir.lisUrl";
 
 	public static final String GP_LIS_USER_UUID = "labonfhir.lisUserUuid";
@@ -236,4 +238,9 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		String fhirClientTimeout = administrationService.getGlobalProperty(GP_FHIR_CLIENT_TIMEOUT, "180000");
 		return Integer.valueOf(fhirClientTimeout);
 	}
+
+    public Object getLabOrderingSiteConceptUuid() {
+		String labOrderingSiteConceptUuid = administrationService.getGlobalProperty(LAB_ORDERING_SITE_CONCEPT_UUID);
+		return labOrderingSiteConceptUuid;
+    }
 }
