@@ -16,6 +16,7 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.Encounter;
+import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.api.db.DAOException;
@@ -84,20 +85,19 @@ public class LabOrderHandler {
 
 		Reference forReference = newReference(order.getPatient().getUuid(), FhirConstants.PATIENT);
 
-		Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
+		// Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
+		Reference ownerRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.ORGANIZATION);
 
 		Reference encounterRef = newReference(order.getEncounter().getUuid(), FhirConstants.ENCOUNTER);
 
-		Reference locationRef = null;
+		Reference locationRef = getLocatonRef(order.getEncounter());
 
-		Reference requesterRef = null;
+		Reference requesterRef = getRequesterRef(order.getEncounter());
 		
-		if (order.getEncounter().getLocation() != null) {
-			requesterRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.ORGANIZATION);
-			locationRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.LOCATION);
-		}
-		// Optional<EncounterProvider> requesterProvider = order.getEncounter().getActiveEncounterProviders().stream()
-		//		.findFirst();
+		//if (order.getEncounter().getLocation() != null) {
+		//	requesterRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.ORGANIZATION);
+		//	locationRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.LOCATION);
+		//}
 
 		// Create Task Resource for given Order
 		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef,requesterRef ,taskInputs);
@@ -147,15 +147,19 @@ public class LabOrderHandler {
 
 		Reference forReference = newReference(encounter.getPatient().getUuid(), FhirConstants.PATIENT);
 
-		Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
+		// Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
 
 		Reference encounterRef = newReference(encounter.getUuid(), FhirConstants.ENCOUNTER);
 
-		Reference locationRef = newReference(encounter.getLocation().getUuid(), FhirConstants.LOCATION);
+		// get ordering site location from the encounter obs
+		Reference locationRef = getLocatonRef(encounter);
+
+		// Reference locationRef = newReference(encounter.getLocation().getUuid(), FhirConstants.LOCATION);
 
 		// Optional<EncounterProvider> requesterProvider = encounter.getActiveEncounterProviders().stream().findFirst();
+		Reference requesterRef = getRequesterRef(encounter);
 
-		Reference requesterRef = newReference(encounter.getLocation().getUuid(), FhirConstants.ORGANIZATION);
+		Reference ownerRef = newReference(encounter.getLocation().getUuid(), FhirConstants.ORGANIZATION);
 
 		List<Task.ParameterComponent> taskInputs = null;
 		if (config.addObsAsTaskInput()) {
@@ -187,5 +191,26 @@ public class LabOrderHandler {
 	private Reference newReference(String uuid, String type) {
 		return new Reference().setReference(type + "/" + uuid).setType(type);
 	}
+
+	private Reference getLocatonRef(Encounter encounter) {
+		final AtomicReference<Reference> locationRef = new AtomicReference<>(null);
+		encounter.getAllObs().stream().filter(obs -> obs.getConcept().getUuid().equals(config.getLabOrderingSiteConceptUuid()))
+				.findFirst().ifPresent(obs -> {
+					locationRef.set(newReference(obs.getValueText(), FhirConstants.LOCATION));
+				});
+		return locationRef.get();
+	}
+
+	private Reference getRequesterRef(Encounter encounter) {
+		EncounterProvider requesterProvider = encounter.getActiveEncounterProviders().stream()
+				.findFirst().orElse(null);
+		Reference requesterRef = null; // Initialize the variable with null
+		if (requesterProvider != null) {
+			requesterRef = newReference(requesterProvider.getProvider().getUuid(), FhirConstants.PRACTITIONER);
+		}
+	
+		return requesterRef;
+	}
+
 
 }

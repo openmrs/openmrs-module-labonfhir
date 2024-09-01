@@ -2,8 +2,6 @@ package org.openmrs.module.labonfhir.api.event;
 
 import javax.jms.Message;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -14,11 +12,9 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 
-import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Location;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Task;
@@ -46,7 +42,7 @@ public abstract class LabCreationListener implements EventListener {
 
 	private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
 
-	protected static final String MFL_LOCATION_IDENTIFIER_URI = "http://moh.bw.org/ext/location/identifier/mfl";
+	protected static final String MFL_LOCATION_IDENTIFIER_URI = "http://moh.bw.org/ext/location/identifier/mfl-code";
 
 	protected static final String MFL_LOCATION_ATTRIBUTE_TYPE_UUID = "8a845a89-6aa5-4111-81d3-0af31c45c002";
 
@@ -115,7 +111,7 @@ public abstract class LabCreationListener implements EventListener {
 		Bundle transactionBundle = new Bundle();
 		transactionBundle.setType(Bundle.BundleType.TRANSACTION);
 		List<IBaseResource> labResources = labBundle.getAllResources();
-		addOrganizationToResourceBundle(task, labResources);
+		updateMflCodeToLocationAndOrganizationResourceBundle(task, labResources);
 
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
@@ -128,42 +124,56 @@ public abstract class LabCreationListener implements EventListener {
 		return transactionBundle;
 	}
 
-	protected void addOrganizationToResourceBundle(Task task, List<IBaseResource> labResources) {
+	protected void updateMflCodeToLocationAndOrganizationResourceBundle(Task task, List<IBaseResource> labResources) {
+		if (task.getOwner() != null) {
+			String mflCode = getMflCode(task.getOwner().getReference(), FhirConstants.ORGANIZATION);
+			if (mflCode != null) {
+				Identifier mflIdentifier = new Identifier()
+						.setSystem(MFL_LOCATION_IDENTIFIER_URI)
+						.setValue(mflCode);
+				Reference ownerRef = new Reference();
+				ownerRef.setIdentifier(mflIdentifier);
+				ownerRef.setType(FhirConstants.ORGANIZATION);
+				task.setOwner(ownerRef);
+			}
+
+		}
+
 		if (task.getLocation() != null) {
-			String locationReferenceId = FhirUtils.referenceToId(task.getLocation().getReference()).orElse(null);
-			if (locationReferenceId != null) {
-				String locationUuid = locationReferenceId.replace("Location/", "");
-				org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(locationUuid);
-				if (openmrsLocation != null) {
-					LocationAttributeType mflLocationAttributeType = locationService.getLocationAttributeTypeByUuid(MFL_LOCATION_ATTRIBUTE_TYPE_UUID);
-					LocationAttribute mflLocationAttribute = openmrsLocation.getActiveAttributes().stream()
-							.filter(locationAttribute -> locationAttribute.getAttributeType().equals(mflLocationAttributeType))
-							.findFirst()
-							.orElse(null);
-					if (mflLocationAttribute != null) {
-						String mflCode = (String) mflLocationAttribute.getValue();
-						Identifier mflIdentifier = new Identifier()
-								.setSystem(MFL_LOCATION_IDENTIFIER_URI)
-								.setValue(mflCode);
-						Organization organization = new Organization()
-								.setIdentifier(Collections.singletonList(mflIdentifier))
-								.setName(task.getLocation().getDisplay());
-						Reference organizationReference = new Reference()
-								.setReference(FhirConstants.ORGANIZATION + "/" + locationUuid)
-								.setType(FhirConstants.ORGANIZATION);
-						Location location = fhirLocationService.get(locationReferenceId);
-						labResources.removeIf(r->r.getIdElement().getValue().equals(location.getIdElement().getValue()));
-						location.setManagingOrganization(organizationReference);
-						labResources.removeIf(r->r.getIdElement().getValue().equals(task.getIdElement().getValue()));
-						task.setRequester(organizationReference);
-						labResources.add(location);
-						labResources.add(organization);
-						labResources.add(task);
-					}
+			String mflCode = getMflCode(task.getLocation().getReference(), FhirConstants.LOCATION);
+			if (mflCode != null) {
+				Identifier mflIdentifier = new Identifier()
+						.setSystem(MFL_LOCATION_IDENTIFIER_URI)
+						.setValue(mflCode);
+				Reference locationRef = new Reference();
+				locationRef.setIdentifier(mflIdentifier);
+				locationRef.setType(FhirConstants.LOCATION);
+				task.setLocation(locationRef);
+			}
+		}
+		labResources.removeIf(r->r.getIdElement().getValue().equals(task.getIdElement().getValue()));
+		labResources.add(task);
+	}
+
+	private String getMflCode(String reference, String referencePath) {
+		String locationReferenceId = FhirUtils.referenceToId(reference).orElse(null);
+		String mflCode = null;
+		if (locationReferenceId != null) {
+			String locationUuid = locationReferenceId.replace(referencePath + "/", "");
+			org.openmrs.Location openmrsLocation = locationService.getLocationByUuid(locationUuid);
+			if (openmrsLocation != null) {
+				LocationAttributeType mflLocationAttributeType = locationService.getLocationAttributeTypeByUuid(MFL_LOCATION_ATTRIBUTE_TYPE_UUID);
+				LocationAttribute mflLocationAttribute = openmrsLocation.getActiveAttributes().stream()
+						.filter(locationAttribute -> locationAttribute.getAttributeType().equals(mflLocationAttributeType))
+						.findFirst()
+						.orElse(null);
+				if (mflLocationAttribute != null) {
+					mflCode = (String) mflLocationAttribute.getValue();
 				}
 			}
 		}
-	}
+		return mflCode;
+}
 
 	protected void sendTask(Task task) {
 		if (task != null) {

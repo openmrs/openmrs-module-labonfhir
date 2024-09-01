@@ -4,11 +4,6 @@ import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.jms.Message;
 
-import static org.openmrs.module.labonfhir.api.event.LabCreationListener.MFL_LOCATION_ATTRIBUTE_TYPE_UUID;
-import static org.openmrs.module.labonfhir.api.event.LabCreationListener.MFL_LOCATION_IDENTIFIER_URI;
-
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -19,20 +14,13 @@ import ca.uhn.fhir.rest.param.TokenParam;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Location;
-import org.hl7.fhir.r4.model.Organization;
-import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Task;
-import org.openmrs.LocationAttribute;
-import org.openmrs.LocationAttributeType;
 import org.openmrs.Order;
 import org.openmrs.TestOrder;
 import org.openmrs.api.APIException;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.OrderService;
-import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.util.FhirUtils;
 import org.openmrs.module.labonfhir.api.LabOrderHandler;
@@ -121,7 +109,7 @@ public class OrderCreationListener extends LabCreationListener {
 		if (task.getLocation() != null) {
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
 		}
-		addOrganizationToResourceBundle(task, labResources);
+		updateMflCodeToLocationAndOrganizationResourceBundle(task, labResources);
 
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
