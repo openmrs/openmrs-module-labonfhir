@@ -49,7 +49,6 @@ import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
 
-@Component
 @Setter(AccessLevel.PACKAGE)
 public class FetchTaskUpdates extends AbstractTask implements ApplicationContextAware {
 
