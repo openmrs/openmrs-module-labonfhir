@@ -88,7 +88,8 @@ public class LabOrderHandler {
 		
 		Reference forReference = newReference(order.getPatient().getUuid(), FhirConstants.PATIENT);
 		
-		Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
+		// Acccording to the FHIR spec, the owner of the task should be the Individual Organization or Device that the task is assigned to
+		Reference ownerRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.LOCATION);
 		
 		Reference encounterRef = newReference(order.getEncounter().getUuid(), FhirConstants.ENCOUNTER);
 		
@@ -100,7 +101,8 @@ public class LabOrderHandler {
 		
 		Reference locationRef = null;
 		if (order.getEncounter().getLocation() != null) {
-			locationRef = newReference(order.getEncounter().getLocation().getUuid(), FhirConstants.LOCATION);
+			// Acccording to the FHIR spec, the location of the task should be the location where the task is performed
+			locationRef = getLocatonRef(order.getEncounter());
 		}
 		
 		// Create Task Resource for given Order
@@ -154,11 +156,12 @@ public class LabOrderHandler {
 
 		Reference forReference = newReference(encounter.getPatient().getUuid(), FhirConstants.PATIENT);
 
-		Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
-
+		// Acccording to the FHIR spec, the owner of the task should be the Individual Organization or Device that the task is assigned to
+		Reference ownerRef = newReference(encounter.getLocation().getUuid(), FhirConstants.LOCATION);
+	
 		Reference encounterRef = newReference(encounter.getUuid(), FhirConstants.ENCOUNTER);
 
-		Reference locationRef = newReference(encounter.getLocation().getUuid(), FhirConstants.LOCATION);
+		Reference locationRef = getLocatonRef(encounter);
 
 		Optional<EncounterProvider> requesterProvider = encounter.getActiveEncounterProviders().stream().findFirst();
 
@@ -200,4 +203,12 @@ public class LabOrderHandler {
 		return new Reference().setReference(type + "/" + uuid).setType(type);
 	}
 
+	private Reference getLocatonRef(Encounter encounter) {
+		final AtomicReference<Reference> locationRef = new AtomicReference<>(null);
+		encounter.getAllObs().stream().filter(obs -> obs.getConcept().getUuid().equals(config.getLabOrderingSiteConceptUuid()))
+				.findFirst().ifPresent(obs -> {
+					locationRef.set(newReference(obs.getValueText(), FhirConstants.LOCATION));
+				});
+		return locationRef.get();
+	}
 }
