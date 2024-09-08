@@ -99,7 +99,7 @@ public abstract class LabCreationListener implements EventListener {
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
-			component.setResource(resource);
+			component.setFullUrl("urn:uuid:" + resource.getIdElement().getIdPart());
 			component.getRequest().setUrl(resource.fhirType() + "/" + resource.getIdElement().getIdPart())
 			        .setMethod(Bundle.HTTPVerb.PUT);
 
