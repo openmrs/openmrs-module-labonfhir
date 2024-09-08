@@ -234,11 +234,6 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		this.applicationContext = applicationContext;
 	}
 
-	public int getFhirClientTimeout() {
-		String fhirClientTimeout = administrationService.getGlobalProperty(GP_FHIR_CLIENT_TIMEOUT, "180000");
-		return Integer.valueOf(fhirClientTimeout);
-	}
-
     public Object getLabOrderingSiteConceptUuid() {
 		String labOrderingSiteConceptUuid = administrationService.getGlobalProperty(LAB_ORDERING_SITE_CONCEPT_UUID);
 		return labOrderingSiteConceptUuid;
