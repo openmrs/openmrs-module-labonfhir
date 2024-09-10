@@ -30,6 +30,7 @@ import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.codesystems.TaskStatus;
 import org.openmrs.Order;
 import org.openmrs.Order.FulfillerStatus;
+import org.openmrs.api.AdministrationService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
@@ -79,6 +80,9 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	@Autowired
 	FhirObservationService observationService;
 
+    @Autowired
+	AdministrationService adminService; 
+
 	@Autowired
 	OrderService orderService;
 
@@ -120,12 +124,15 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 				lastRequstDate = dateFormat.format(lastRequest.getRequestDate());
 			}
 			
+			String practitionerId = adminService.getGlobalProperty("labonfhir.lisUserUuid");
+
 			String currentTime = dateFormat.format(newDate);
 			DateRangeParam lastUpdated = new DateRangeParam().setLowerBound(lastRequstDate).setUpperBound(currentTime);
 			
 			// Get List of Tasks that belong to this instance and update them
 			Bundle taskBundle = client.search().forResource(Task.class)
 			        .where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
+					.where(Task.OWNER.hasId(practitionerId))
 			        .where(Task.STATUS.exactly().codes(
 						TaskStatus.COMPLETED.toCode(), 
 						TaskStatus.REQUESTED.toCode(), 

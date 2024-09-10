@@ -49,6 +49,7 @@ public class OrderCreationListener extends LabCreationListener {
 			Order order;
 			try {
 				order = orderService.getOrderByUuid(uuid);
+	             
 				log.trace("Fetched order {}", order);
 			} catch (APIException e) {
 				log.error("Exception caught while trying to load order {}", uuid, e);
