@@ -131,7 +131,6 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 					.where(Task.OWNER.hasId(practitionerId))
 			        .where(Task.STATUS.exactly().codes(
 						TaskStatus.COMPLETED.toCode(), 
-						TaskStatus.REQUESTED.toCode(), 
 						TaskStatus.ACCEPTED.toCode(), 
 						TaskStatus.REJECTED.toCode(),
 						TaskStatus.CANCELLED.toCode())).lastUpdated(lastUpdated)
