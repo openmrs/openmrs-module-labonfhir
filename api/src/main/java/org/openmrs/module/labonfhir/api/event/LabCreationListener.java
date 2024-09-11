@@ -10,6 +10,8 @@ import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Resource;
@@ -18,6 +20,7 @@ import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
 import org.openmrs.module.fhir2.api.FhirLocationService;
+import org.openmrs.module.fhir2.api.FhirPractitionerService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.util.FhirUtils;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
@@ -54,6 +57,9 @@ public abstract class LabCreationListener implements EventListener {
 
 	@Autowired
 	private LabOnFhirService labOnFhirService ;
+
+	@Autowired
+	private FhirPractitionerService practitionerService;
 
 	public DaemonToken getDaemonToken() {
 		return daemonToken;
@@ -95,6 +101,14 @@ public abstract class LabCreationListener implements EventListener {
 		List<IBaseResource> labResources = labBundle.getAllResources();
 		if (!task.getLocation().isEmpty()) {
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
+		}
+		if (!task.getOwner().isEmpty()) {
+			try {
+				practitionerService.get(config.getLisUserUuid());
+			} catch (ResourceNotFoundException e) {
+				labResources
+						.add(practitionerService.get(FhirUtils.referenceToId(task.getOwner().getReference()).get()));
+			}
 		}
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
