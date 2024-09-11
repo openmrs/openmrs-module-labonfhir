@@ -213,9 +213,9 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 							tasksUpdated = true;
 						}
 						
-						if(openelisTask.getStatus().toString().equals(TaskStatus.REQUESTED.toString()) || openelisTask.getStatus().toString().equals(TaskStatus.ACCEPTED.toString()) ){
+						if( openelisTask.getStatus().toString().equals(TaskStatus.ACCEPTED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
-                            setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.RECEIVED, commentText);
+                            setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.IN_PROGRESS, commentText);
 							tasksUpdated = true;
 						}
 					}
