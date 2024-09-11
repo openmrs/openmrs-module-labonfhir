@@ -30,7 +30,6 @@ import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.codesystems.TaskStatus;
 import org.openmrs.Order;
 import org.openmrs.Order.FulfillerStatus;
-import org.openmrs.api.AdministrationService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
@@ -322,10 +321,8 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	private void setOrderStatus(List<Reference> basedOn, String string, FulfillerStatus fulfillerStatus, String commentText) {
 		basedOn.forEach(ref -> {
 			if (ref.hasReferenceElement()) {
-				System.out.println("concidtion: 1");
 				IIdType referenceElement = ref.getReferenceElement();
 				if ("ServiceRequest".equals(referenceElement.getResourceType())) {
-					System.out.println("concidtion: 2");
 					String serviceRequestUuid = referenceElement.getIdPart();
 					try {
 						
