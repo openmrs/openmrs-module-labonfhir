@@ -107,7 +107,7 @@ public abstract class LabCreationListener implements EventListener {
 				practitionerService.get(config.getLisUserUuid());
 			} catch (ResourceNotFoundException e) {
 				labResources
-						.add(practitionerService.get(FhirUtils.referenceToId(task.getOwner().getReference()).get()));
+						.add(practitionerService.get(FhirUtils.referenceToId(task.getOwner().getReference()).get()).setActive(true));
 			}
 		}
 		for (IBaseResource r : labResources) {
