@@ -193,7 +193,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 	private Boolean updateTasksInBundle(List<Bundle> taskBundles) {
 		Boolean tasksUpdated = false;
-		String commentText = "Update Order with remote fhir status :)";
+		String commentText = "Update Order with remote fhir status : ";
 		for (Bundle bundle : taskBundles) {
 			for (Iterator tasks = bundle.getEntry().iterator(); tasks.hasNext();) {
 				String openmrsTaskUuid = null;
@@ -228,20 +228,21 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 						if(openelisTask.getStatus().toString().equals(TaskStatus.REJECTED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
-							commentText  = openelisTask.getStatusReason().getText().toString().isEmpty() ? commentText: openelisTask.getStatusReason().getText();
+							commentText  = commentText + TaskStatus.REJECTED.toString();
                             setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.EXCEPTION, commentText);
 							tasksUpdated = true;
 						}
 
 						if(openelisTask.getStatus().toString().equals(TaskStatus.CANCELLED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
-							commentText  = TaskStatus.CANCELLED.toString();
+							commentText  = commentText + TaskStatus.CANCELLED.toString();
                             setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.EXCEPTION, commentText);
 							tasksUpdated = true;
 						}
 						
 						if( openelisTask.getStatus().toString().equals(TaskStatus.ACCEPTED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
+							commentText  = commentText + TaskStatus.ACCEPTED.toString();
                             setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.IN_PROGRESS, commentText);
 							tasksUpdated = true;
 						}
