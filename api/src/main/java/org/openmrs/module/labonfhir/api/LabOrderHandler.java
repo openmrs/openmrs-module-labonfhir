@@ -23,11 +23,14 @@ import org.openmrs.Order;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirObservationService;
+import org.openmrs.module.fhir2.api.FhirPractitionerService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 
 @Component
 public class LabOrderHandler {
@@ -40,6 +43,9 @@ public class LabOrderHandler {
 
 	@Autowired
 	private FhirObservationService observationService;
+
+	@Autowired
+	private FhirPractitionerService practitionerService;
 
 	public Task createOrder(Order order) throws OrderCreationException {
 		//TDO: MAKE THIS A GLOBAL CONFIG
@@ -95,8 +101,19 @@ public class LabOrderHandler {
 		Optional<EncounterProvider> requesterProvider = order.getEncounter().getActiveEncounterProviders().stream()
 				.findFirst();
 		
-		Reference requesterRef = requesterProvider.map(
-				encounterProvider -> newReference(encounterProvider.getUuid(), FhirConstants.PRACTITIONER)).orElse(null);
+		Reference requesterRef = requesterProvider.isPresent()? newReference(requesterProvider.get().getProvider().getUuid(), FhirConstants.PRACTITIONER) : null;
+		
+		try {
+			practitionerService.get(config.getLisUserUuid());
+		} catch (ResourceNotFoundException e) {
+			if (requesterRef != null) {
+				ownerRef = requesterRef;
+			} else {
+				ownerRef = newReference(order.getEncounter().getCreator().getUuid(), FhirConstants.PRACTITIONER);
+			}
+
+		}
+		
 		
 		Reference locationRef = null;
 		if (order.getEncounter().getLocation() != null) {
@@ -163,9 +180,18 @@ public class LabOrderHandler {
 		Optional<EncounterProvider> requesterProvider = encounter.getActiveEncounterProviders().stream().findFirst();
 
 		Reference requesterRef = requesterProvider.isPresent() ?
-				newReference(requesterProvider.get().getUuid(), FhirConstants.PRACTITIONER) :
+				newReference(requesterProvider.get().getProvider().getUuid(), FhirConstants.PRACTITIONER) :
 				null;
-
+		try {
+			practitionerService.get(config.getLisUserUuid());
+		} catch (ResourceNotFoundException e) {
+			if (requesterRef != null) {
+				ownerRef = requesterRef;
+			} else {
+				ownerRef = newReference(encounter.getCreator().getUuid(), FhirConstants.PRACTITIONER);
+			}
+		}
+		
 		List<Task.ParameterComponent> taskInputs = null;
 		if (config.addObsAsTaskInput()) {
 			taskInputs = new ArrayList<>();

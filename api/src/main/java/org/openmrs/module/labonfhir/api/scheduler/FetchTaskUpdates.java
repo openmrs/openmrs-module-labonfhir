@@ -34,6 +34,7 @@ import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
 import org.openmrs.module.fhir2.api.FhirObservationService;
+import org.openmrs.module.fhir2.api.FhirPractitionerService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.dao.FhirObservationDao;
 import org.openmrs.module.fhir2.api.translators.ObservationReferenceTranslator;
@@ -92,6 +93,9 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	@Autowired
     private LabOnFhirService labOnFhirService;
 
+	@Autowired
+    private FhirPractitionerService practitionerService;
+
 	@Override
 	public void execute() {
 		
@@ -126,15 +130,38 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			DateRangeParam lastUpdated = new DateRangeParam().setLowerBound(lastRequstDate).setUpperBound(currentTime);
 			
 			// Get List of Tasks that belong to this instance and update them
-			Bundle taskBundle = client.search().forResource(Task.class)
-			        .where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
-					.where(Task.OWNER.hasId(practitionerId))
-			        .where(Task.STATUS.exactly().codes(
-						TaskStatus.COMPLETED.toCode(), 
-						TaskStatus.ACCEPTED.toCode(), 
-						TaskStatus.REJECTED.toCode(),
-						TaskStatus.CANCELLED.toCode())).lastUpdated(lastUpdated)
-			        .returnBundle(Bundle.class).execute();
+			Bundle taskBundle = new Bundle();
+			Boolean userExists = true;
+			try {
+				practitionerService.get(config.getLisUserUuid());
+				userExists = true;
+			} catch (ResourceNotFoundException e) {
+				userExists = false;
+			}
+			if (userExists) {
+				taskBundle = client.search().forResource(Task.class)
+						.where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
+						.where(Task.OWNER.hasId(practitionerId))
+						.where(Task.STATUS.exactly().codes(
+								TaskStatus.COMPLETED.toCode(),
+								TaskStatus.ACCEPTED.toCode(),
+								TaskStatus.REJECTED.toCode(),
+								TaskStatus.CANCELLED.toCode()))
+						.lastUpdated(lastUpdated)
+						.returnBundle(Bundle.class).execute();
+
+			} else {
+				taskBundle = client.search().forResource(Task.class)
+						.where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
+						.where(Task.STATUS.exactly().codes(
+								TaskStatus.COMPLETED.toCode(),
+								TaskStatus.ACCEPTED.toCode(),
+								TaskStatus.REJECTED.toCode(),
+								TaskStatus.CANCELLED.toCode()))
+						.lastUpdated(lastUpdated)
+						.returnBundle(Bundle.class).execute();
+
+			}	
 			
 			List<Bundle> taskBundles = new ArrayList<>();
 			taskBundles.add(taskBundle);
@@ -166,7 +193,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 	private Boolean updateTasksInBundle(List<Bundle> taskBundles) {
 		Boolean tasksUpdated = false;
-		String commentText = "Update Order with remote fhir status :)";
+		String commentText = "Update Order with remote fhir status : ";
 		for (Bundle bundle : taskBundles) {
 			for (Iterator tasks = bundle.getEntry().iterator(); tasks.hasNext();) {
 				String openmrsTaskUuid = null;
@@ -201,20 +228,21 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 						if(openelisTask.getStatus().toString().equals(TaskStatus.REJECTED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
-							commentText  = openelisTask.getStatusReason().getText().toString().isEmpty() ? commentText: openelisTask.getStatusReason().getText();
+							commentText  = commentText + TaskStatus.REJECTED.toString();
                             setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.EXCEPTION, commentText);
 							tasksUpdated = true;
 						}
 
 						if(openelisTask.getStatus().toString().equals(TaskStatus.CANCELLED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
-							commentText  = TaskStatus.CANCELLED.toString();
+							commentText  = commentText + TaskStatus.CANCELLED.toString();
                             setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.EXCEPTION, commentText);
 							tasksUpdated = true;
 						}
 						
 						if( openelisTask.getStatus().toString().equals(TaskStatus.ACCEPTED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
+							commentText  = commentText + TaskStatus.ACCEPTED.toString();
                             setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.IN_PROGRESS, commentText);
 							tasksUpdated = true;
 						}
