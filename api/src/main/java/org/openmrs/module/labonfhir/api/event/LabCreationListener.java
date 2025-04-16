@@ -10,7 +10,6 @@ import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
@@ -105,7 +104,7 @@ public abstract class LabCreationListener implements EventListener {
 		if (!task.getOwner().isEmpty()) {
 			try {
 				practitionerService.get(config.getLisUserUuid());
-			} catch (ResourceNotFoundException e) {
+			} catch (Exception e) {
 				labResources
 						.add(practitionerService.get(FhirUtils.referenceToId(task.getOwner().getReference()).get()).setActive(true));
 			}

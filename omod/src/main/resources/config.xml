@@ -54,7 +54,7 @@
 	<globalProperty>
 		<property>@MODULE_ID@.lisUrl</property>
 		<description>The URL for an LIS system like OpenELIS system to communicate with</description>
-		<defaultValue>http://172.17.0.1:8081/fhir</defaultValue>
+		<defaultValue>http://shr-hapi-fhir:8080/fhir/</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.lisUserUuid</property>

@@ -8,7 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "failed_task")
+@Table(name = "lab_on_fhir_failed_task")
 public class FailedTask extends BaseOpenmrsData {
 
     @Id
