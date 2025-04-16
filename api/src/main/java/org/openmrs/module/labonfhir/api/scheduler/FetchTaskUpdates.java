@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.TokenClientParam;
 import ca.uhn.fhir.rest.param.DateRangeParam;
@@ -49,7 +50,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Component
 @Setter(AccessLevel.PACKAGE)
@@ -67,6 +70,10 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	@Autowired
 	@Qualifier("labOrderFhirClient")
 	private IGenericClient client;
+
+	@Autowired
+    @Qualifier("fhirR4")
+    private FhirContext fhirContext;
 
 	@Autowired
 	private FhirTaskService taskService;
@@ -111,23 +118,26 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		}
 		
 		try {
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+			DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 			Date newDate = new Date();
+			ZoneId zone = ZoneId.systemDefault(); 
+            ZonedDateTime newZoneDate = newDate.toInstant().atZone(zone);
+
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(newDate);
 			calendar.add(Calendar.YEAR, -5);
 			Date fiveYearsAgo = calendar.getTime();
 			
 			TaskRequest lastRequest = labOnFhirService.getLastTaskRequest();
-			String lastRequstDate = dateFormat.format(fiveYearsAgo);
+			String lastRequestDate = dateFormat.format(fiveYearsAgo.toInstant().atZone(zone));
 			if (lastRequest != null) {
-				lastRequstDate = dateFormat.format(lastRequest.getRequestDate());
+				lastRequestDate = dateFormat.format(lastRequest.getRequestDate().toInstant().atZone(zone));
 			}
 			
 			String practitionerId = config.getLisUserUuid();
 
-			String currentTime = dateFormat.format(newDate);
-			DateRangeParam lastUpdated = new DateRangeParam().setLowerBound(lastRequstDate).setUpperBound(currentTime);
+			String currentTime = dateFormat.format(newZoneDate);
+			DateRangeParam lastUpdated = new DateRangeParam().setLowerBound(lastRequestDate).setUpperBound(currentTime);
 			
 			// Get List of Tasks that belong to this instance and update them
 			Bundle taskBundle = new Bundle();
@@ -135,7 +145,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			try {
 				practitionerService.get(config.getLisUserUuid());
 				userExists = true;
-			} catch (ResourceNotFoundException e) {
+			} catch (Exception e) {
 				userExists = false;
 			}
 			if (userExists) {
@@ -149,7 +159,6 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 								TaskStatus.CANCELLED.toCode()))
 						.lastUpdated(lastUpdated)
 						.returnBundle(Bundle.class).execute();
-
 			} else {
 				taskBundle = client.search().forResource(Task.class)
 						.where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
@@ -163,6 +172,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 
 			}	
 			
+			log.debug(fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(taskBundle));
 			List<Bundle> taskBundles = new ArrayList<>();
 			taskBundles.add(taskBundle);
 			//Support FHIR Server Pagination

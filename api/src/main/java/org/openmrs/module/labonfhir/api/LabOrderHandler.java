@@ -105,7 +105,7 @@ public class LabOrderHandler {
 		
 		try {
 			practitionerService.get(config.getLisUserUuid());
-		} catch (ResourceNotFoundException e) {
+		} catch (Exception e) {
 			if (requesterRef != null) {
 				ownerRef = requesterRef;
 			} else {
@@ -184,7 +184,7 @@ public class LabOrderHandler {
 				null;
 		try {
 			practitionerService.get(config.getLisUserUuid());
-		} catch (ResourceNotFoundException e) {
+		} catch (Exception e) {
 			if (requesterRef != null) {
 				ownerRef = requesterRef;
 			} else {

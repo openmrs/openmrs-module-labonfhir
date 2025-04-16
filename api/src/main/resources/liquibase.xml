@@ -13,7 +13,7 @@
         for a list of supported elements and attributes
     -->
 
-    <changeSet id="create-openelis-pull-task-2020-04-03" author="pmanko" dbms="mysql">
+    <changeSet id="create-openelis-pull-task-2020-04-03" author="pmanko">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*) FROM scheduler_task_config
@@ -36,7 +36,7 @@
             <column name="uuid" value="8c17b376-1a2v-11e1-a51a-00248140a5eb" />
         </insert>
     </changeSet>
-    <changeSet id="create-failed_task-table-2023-06-05" author="mozzymutesa" dbms="mysql">
+    <changeSet id="create-failed_task-table-2023-06-05" author="mozzymutesa">
 		<preConditions onFail="MARK_RAN">
 			<not><tableExists tableName="failed_task"/></not>
 		</preConditions>
@@ -63,7 +63,7 @@
             <column defaultValueBoolean="false" name="voided" type="BOOLEAN"/>
 		</createTable>
     </changeSet> 
-    <changeSet id="create-retry_failed_tasks-task-2023-06-05" author="mozzymutesa" dbms="mysql">
+    <changeSet id="create-retry_failed_tasks-task-2023-06-05" author="mozzymutesa">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*) FROM scheduler_task_config
@@ -86,7 +86,7 @@
             <column name="uuid" value="ae35121c-41e6-46f1-b2a2-0d9d2fa63e74" />
         </insert>
     </changeSet>
-     <changeSet id="create-task-request-table-2023-08-24" author="mozzymutesa" dbms="mysql">
+     <changeSet id="create-task-request-table-2023-08-24" author="mozzymutesa">
 		<preConditions onFail="MARK_RAN">
 			<not><tableExists tableName="task_request"/></not>
 		</preConditions>
@@ -111,6 +111,18 @@
             <column defaultValueBoolean="false" name="voided" type="BOOLEAN"/>
 		</createTable>
     </changeSet> 
+    <changeSet id="rename-task-request-table-2025-04-16" author="mozzymutesa">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="task_request"/>
+        </preConditions>
+        <renameTable oldTableName="task_request" newTableName="lab_on_fhir_task_request"/>
+    </changeSet>
+    <changeSet id="rename-failed_task-table-2025-04-16" author="mozzymutesa">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="failed_task"/>
+        </preConditions>
+        <renameTable oldTableName="failed_task" newTableName="lab_on_fhir_failed_task"/>
+    </changeSet>
 </databaseChangeLog>
 
 

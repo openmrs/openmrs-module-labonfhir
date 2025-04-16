@@ -11,7 +11,7 @@ import javax.persistence.Table;
 import org.openmrs.BaseOpenmrsData;
 
 @Entity
-@Table(name = "task_request")
+@Table(name = "lab_on_fhir_task_request")
 public class TaskRequest extends BaseOpenmrsData {
     
     @Id
