@@ -128,8 +128,8 @@ public abstract class LabCreationListener implements EventListener {
 					client.transaction().withBundle(labBundle).execute();
 				}
 				catch (Exception e) {
-					saveFailedTask(task.getIdElement().getIdPart(), e.getCause().getMessage());
-					log.error("Failed to send Task with UUID " + task.getIdElement().getIdPart(), e.getCause());
+					saveFailedTask(task.getIdElement().getIdPart(), e.getCause() != null ? e.getCause().getMessage() : e.getMessage().substring(0, 100));
+					log.error("Failed to send Task with UUID " + task.getIdElement().getIdPart(), e.getMessage());
 				}
 				log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
 			}
