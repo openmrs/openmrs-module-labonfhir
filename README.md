@@ -21,11 +21,7 @@ mvn clean package
 2. Use omod file as part of an OpenMRS distribution. 
 
 ## Usage
-To use this Module , first Load the [Order Entry UI module](https://github.com/openmrs/openmrs-module-orderentryui)  and the [Order Entry OWA](https://github.com/openmrs/openmrs-owa-orderentry) for creating the Orders With in OpenMRS .    
-
-see more [instructions](https://wiki.openmrs.org/display/projects/Order+Entry+UI+Administrator+Guide) for Configuring the OWA and the [User Guide](https://wiki.openmrs.org/display/projects/Order+Entry+UI+End+User+Guide+for+Creating+Drug+Orders)
-
-Note: Ensure to Configure these [Global Properties](https://github.com/openmrs/openmrs-owa-orderentry#usage)(Settings) Required by the OWA to function
+ Ensure to Configure these [Global Properties](https://github.com/openmrs/openmrs-owa-orderentry#usage)(Settings) Required by the OWA to function
 
 The Lab on FHir Module only generates the Lab WorkFlow Fhir Bundle When an order is created in OpenMRS and Pushes the Lab Fhir Bundle  to an external LIS system ,and Polls for Completed Orders from the LIS
 
@@ -46,6 +42,8 @@ Configure the Following Global Properties Required By the Lab on Fhir Module
 * `labonfhir.orderTestUuids` ,Concept UUIDs to filter by for Test Orders that get sent to the LIS
 * `labonfhir.labUpdateTriggerObject` ,The OpenMRS object type that should trigger LIS synchronization - either Encounter or Order
 * `labonfhir.addObsAsTaskInput` ,Allows Adding Obs as Task Input- either true or false
+
+watch the EMR-LIS Exhange [demo video](https://www.youtube.com/watch?v=LsHhDrrlvKw) using the Lab on FHIR module
 
 
 

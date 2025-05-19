@@ -7,6 +7,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Task;
 import org.openmrs.module.fhir2.api.FhirTaskService;
+import org.openmrs.module.labonfhir.FhirConfig;
 import org.openmrs.module.labonfhir.api.event.OrderCreationListener;
 import org.openmrs.module.labonfhir.api.model.FailedTask;
 import org.openmrs.module.labonfhir.api.service.LabOnFhirService;
@@ -19,7 +20,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 @Component
 public class RetryFailedTasks extends AbstractTask implements ApplicationContextAware {
@@ -28,8 +28,8 @@ public class RetryFailedTasks extends AbstractTask implements ApplicationContext
     private static ApplicationContext applicationContext;
     
     @Autowired
-    @Qualifier("labOrderFhirClient")
-    private IGenericClient client;
+	@Qualifier("labOrderFhirConfig")
+	private FhirConfig fhirConfig;
     
     @Autowired
     private FhirTaskService fhirTaskService;
@@ -71,7 +71,7 @@ public class RetryFailedTasks extends AbstractTask implements ApplicationContext
             }
             try {
                 Bundle labBundle = orderCreationListener.createLabBundle(task);
-                client.transaction().withBundle(labBundle).execute();
+                fhirConfig.getFhirClient().transaction().withBundle(labBundle).execute();
                 failedTask.setIsSent(true);
                 labOnFhirService.saveOrUpdateFailedTask(failedTask);
                 log.info("Resent Failed task:" + failedTask.getTaskUuid());
