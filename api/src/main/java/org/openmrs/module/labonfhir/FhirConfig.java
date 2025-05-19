@@ -5,8 +5,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.openmrs.module.labonfhir.LabOnFhirConfig.AuthType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.apache.ApacheRestfulClientFactory;
@@ -14,7 +13,7 @@ import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-@Configuration("labOrderFhirConfig")
+@Component("labOrderFhirConfig")
 public class FhirConfig {
     
     @Autowired
@@ -30,7 +29,6 @@ public class FhirConfig {
         fhirContext.setRestfulClientFactory(clientFactory);
     }
     
-    @Bean(name ="labOrderFhirClient")
     public IGenericClient getFhirClient() throws Exception {
         if (config.getAuthType().equals(AuthType.SSL)) {
             CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(config.sslConnectionSocketFactory()).build();

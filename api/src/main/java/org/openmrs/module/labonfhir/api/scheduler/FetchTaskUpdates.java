@@ -39,6 +39,7 @@ import org.openmrs.module.fhir2.api.FhirPractitionerService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.dao.FhirObservationDao;
 import org.openmrs.module.fhir2.api.translators.ObservationReferenceTranslator;
+import org.openmrs.module.labonfhir.FhirConfig;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.model.TaskRequest;
 import org.openmrs.module.labonfhir.api.service.LabOnFhirService;
@@ -68,8 +69,8 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	private LabOnFhirConfig config;
 
 	@Autowired
-	@Qualifier("labOrderFhirClient")
-	private IGenericClient client;
+	@Qualifier("labOrderFhirConfig")
+	private FhirConfig fhirConfig;
 
 	@Autowired
     @Qualifier("fhirR4")
@@ -149,7 +150,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 				userExists = false;
 			}
 			if (userExists) {
-				taskBundle = client.search().forResource(Task.class)
+				taskBundle = fhirConfig.getFhirClient().search().forResource(Task.class)
 						.where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
 						.where(Task.OWNER.hasId(practitionerId))
 						.where(Task.STATUS.exactly().codes(
@@ -160,7 +161,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 						.lastUpdated(lastUpdated)
 						.returnBundle(Bundle.class).execute();
 			} else {
-				taskBundle = client.search().forResource(Task.class)
+				taskBundle = fhirConfig.getFhirClient().search().forResource(Task.class)
 						.where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
 						.where(Task.STATUS.exactly().codes(
 								TaskStatus.COMPLETED.toCode(),
@@ -177,7 +178,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			taskBundles.add(taskBundle);
 			//Support FHIR Server Pagination
 			while (taskBundle.getLink(IBaseBundle.LINK_NEXT) != null) {
-				taskBundle = client.loadPage().next(taskBundle).execute();
+				taskBundle = fhirConfig.getFhirClient().loadPage().next(taskBundle).execute();
 				taskBundles.add(taskBundle);
 			}
 			Boolean tasksUpdated = updateTasksInBundle(taskBundles);
@@ -273,7 +274,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 				if ("ServiceRequest".equals(referenceElement.getResourceType())) {
 					String serviceRequestUuid = referenceElement.getIdPart();
 					try {
-						ServiceRequest serviceRequest = client.read().resource(ServiceRequest.class)
+						ServiceRequest serviceRequest = fhirConfig.getFhirClient().read().resource(ServiceRequest.class)
 						        .withId(serviceRequestUuid).execute();
 						if (serviceRequest.hasRequisition()) {
 							Order order = orderService.getOrderByUuid(serviceRequestUuid);
@@ -288,6 +289,8 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 					catch (ResourceNotFoundException e) {
 						log.error(
 						    "Could not Fetch ServiceRequest/" + serviceRequestUuid + ":" + e.toString() + getStackTrace(e));
+					}catch(Exception e){
+
 					}
 				}
 			}
@@ -309,49 +312,51 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 					});
 		});
 		if (!output.isEmpty()) {
+			try{
 			// Save each output entry
-			for (Iterator outputRefI = output.stream().iterator(); outputRefI.hasNext();) {
-				Task.TaskOutputComponent outputRef = (Task.TaskOutputComponent) outputRefI.next();
-				String openelisDiagnosticReportUuid = ((Reference) outputRef.getValue()).getReferenceElement()
-						.getIdPart();
-				// Get Diagnostic Report and associated Observations (using include)
-				Bundle diagnosticReportBundle = client.search().forResource(DiagnosticReport.class)
-						.where(new TokenClientParam("_id").exactly().code(openelisDiagnosticReportUuid))
-						.include(DiagnosticReport.INCLUDE_RESULT).include(DiagnosticReport.INCLUDE_SUBJECT)
-						.returnBundle(Bundle.class).execute();
+				for (Iterator outputRefI = output.stream().iterator(); outputRefI.hasNext();) {
+					Task.TaskOutputComponent outputRef = (Task.TaskOutputComponent) outputRefI.next();
+					String openelisDiagnosticReportUuid = ((Reference) outputRef.getValue()).getReferenceElement()
+							.getIdPart();
+					// Get Diagnostic Report and associated Observations (using include)
+					Bundle diagnosticReportBundle = fhirConfig.getFhirClient().search().forResource(DiagnosticReport.class)
+							.where(new TokenClientParam("_id").exactly().code(openelisDiagnosticReportUuid))
+							.include(DiagnosticReport.INCLUDE_RESULT).include(DiagnosticReport.INCLUDE_SUBJECT)
+							.returnBundle(Bundle.class).execute();
 
-				DiagnosticReport diagnosticReport = (DiagnosticReport) diagnosticReportBundle.getEntryFirstRep()
-						.getResource();
-				Coding diagnosticReportCode = diagnosticReport.getCode().getCodingFirstRep();
-				if (diagnosticReportCode.getSystem().equals(LOINC_SYSTEM)) {
-					List<Reference> results = new ArrayList<>();
-					if (!allExistingLoincCodes.contains(diagnosticReportCode.getCode())) {
-						// save Observation
-						for (Bundle.BundleEntryComponent entry : diagnosticReportBundle.getEntry()) {
-							if (entry.hasResource()) {
-								if (ResourceType.Observation.equals(entry.getResource().getResourceType())) {
-									Observation newObs = (Observation) entry.getResource();
-									newObs.setEncounter(encounterReference);
-									newObs.setBasedOn(basedOn);
-									newObs = observationService.create(newObs);
-									Reference obsRef = new Reference();
-									obsRef.setReference(
-											ResourceType.Observation + "/" + newObs.getIdElement().getIdPart());
-									results.add(obsRef);
+					DiagnosticReport diagnosticReport = (DiagnosticReport) diagnosticReportBundle.getEntryFirstRep()
+							.getResource();
+					Coding diagnosticReportCode = diagnosticReport.getCode().getCodingFirstRep();
+					if (diagnosticReportCode.getSystem().equals(LOINC_SYSTEM)) {
+						List<Reference> results = new ArrayList<>();
+						if (!allExistingLoincCodes.contains(diagnosticReportCode.getCode())) {
+							// save Observation
+							for (Bundle.BundleEntryComponent entry : diagnosticReportBundle.getEntry()) {
+								if (entry.hasResource()) {
+									if (ResourceType.Observation.equals(entry.getResource().getResourceType())) {
+										Observation newObs = (Observation) entry.getResource();
+										newObs.setEncounter(encounterReference);
+										newObs.setBasedOn(basedOn);
+										newObs = observationService.create(newObs);
+										Reference obsRef = new Reference();
+										obsRef.setReference(
+												ResourceType.Observation + "/" + newObs.getIdElement().getIdPart());
+										results.add(obsRef);
+									}
 								}
 							}
+							diagnosticReport.setResult(results);
+							diagnosticReport.setEncounter(encounterReference);
+							diagnosticReport = diagnosticReportService.create(diagnosticReport);
+							openmrsTask.addOutput().setValue(
+									new Reference().setType(FhirConstants.DIAGNOSTIC_REPORT)
+											.setReference(diagnosticReport.getIdElement().getIdPart()))
+									.setType(diagnosticReport.getCode());
+							taskOutPutUpdated = true;
 						}
-						diagnosticReport.setResult(results);
-						diagnosticReport.setEncounter(encounterReference);
-						diagnosticReport = diagnosticReportService.create(diagnosticReport);
-						openmrsTask.addOutput().setValue(
-								new Reference().setType(FhirConstants.DIAGNOSTIC_REPORT)
-										.setReference(diagnosticReport.getIdElement().getIdPart()))
-								.setType(diagnosticReport.getCode());
-						taskOutPutUpdated = true;
 					}
 				}
-			}
+			}catch(Exception e){}
 		}
 		return taskOutPutUpdated;
 	}

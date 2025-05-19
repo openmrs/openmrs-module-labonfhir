@@ -7,7 +7,6 @@ import java.util.List;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.model.api.Include;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 
@@ -22,6 +21,7 @@ import org.openmrs.module.fhir2.api.FhirLocationService;
 import org.openmrs.module.fhir2.api.FhirPractitionerService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.util.FhirUtils;
+import org.openmrs.module.labonfhir.FhirConfig;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.model.FailedTask;
 import org.openmrs.module.labonfhir.api.service.LabOnFhirService;
@@ -38,8 +38,8 @@ public abstract class LabCreationListener implements EventListener {
 	private DaemonToken daemonToken;
 
 	@Autowired
-	@Qualifier("labOrderFhirClient")
-	private IGenericClient client;
+	@Qualifier("labOrderFhirConfig")
+	private FhirConfig fhirConfig;
 
 	@Autowired
 	private LabOnFhirConfig config;
@@ -125,7 +125,7 @@ public abstract class LabCreationListener implements EventListener {
 			if (config.getActivateFhirPush()) {
 				Bundle labBundle = createLabBundle(task);
 				try {
-					client.transaction().withBundle(labBundle).execute();
+					fhirConfig.getFhirClient().transaction().withBundle(labBundle).execute();
 				}
 				catch (Exception e) {
 					saveFailedTask(task.getIdElement().getIdPart(), e.getCause() != null ? e.getCause().getMessage() : e.getMessage().substring(0, 100));
