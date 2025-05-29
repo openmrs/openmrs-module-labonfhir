@@ -15,33 +15,34 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 @Component("labOrderFhirConfig")
 public class FhirConfig {
-    
-    @Autowired
-    private LabOnFhirConfig config;
-    
-    @Autowired
-    @Qualifier("fhirR4")
-    private FhirContext fhirContext;
-    
-    private void configureFhirHttpClient(CloseableHttpClient httpClient) {
-        IRestfulClientFactory clientFactory = new ApacheRestfulClientFactory(this.fhirContext);
-        clientFactory.setHttpClient(httpClient);
-        fhirContext.setRestfulClientFactory(clientFactory);
-    }
-    
-    public IGenericClient getFhirClient() throws Exception {
-        if (config.getAuthType().equals(AuthType.SSL)) {
-            CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(config.sslConnectionSocketFactory()).build();
-            configureFhirHttpClient(client);
-        }
-
-        IGenericClient fhirClient = fhirContext.newRestfulGenericClient(config.getLisUrl());
-        if (config.getAuthType().equals(AuthType.BASIC)) {
-            BasicAuthInterceptor authInterceptor = new BasicAuthInterceptor(config.getLisUserName(),
-                    config.getLisPassword());
-            fhirClient.registerInterceptor(authInterceptor);
-        }
-        return fhirClient;
-    }
-    
+	
+	@Autowired
+	private LabOnFhirConfig config;
+	
+	@Autowired
+	@Qualifier("fhirR4")
+	private FhirContext fhirContext;
+	
+	private void configureFhirHttpClient(CloseableHttpClient httpClient) {
+		IRestfulClientFactory clientFactory = new ApacheRestfulClientFactory(this.fhirContext);
+		clientFactory.setHttpClient(httpClient);
+		fhirContext.setRestfulClientFactory(clientFactory);
+	}
+	
+	public IGenericClient getFhirClient() throws Exception {
+		if (config.getAuthType().equals(AuthType.SSL)) {
+			CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(config.sslConnectionSocketFactory())
+			        .build();
+			configureFhirHttpClient(client);
+		}
+		
+		IGenericClient fhirClient = fhirContext.newRestfulGenericClient(config.getLisUrl());
+		if (config.getAuthType().equals(AuthType.BASIC)) {
+			BasicAuthInterceptor authInterceptor = new BasicAuthInterceptor(config.getLisUserName(),
+			        config.getLisPassword());
+			fhirClient.registerInterceptor(authInterceptor);
+		}
+		return fhirClient;
+	}
+	
 }
