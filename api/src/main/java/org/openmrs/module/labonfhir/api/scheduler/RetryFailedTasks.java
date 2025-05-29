@@ -23,63 +23,64 @@ import ca.uhn.fhir.context.FhirContext;
 
 @Component
 public class RetryFailedTasks extends AbstractTask implements ApplicationContextAware {
-    private static Log log = LogFactory.getLog(RetryFailedTasks.class);
-
-    private static ApplicationContext applicationContext;
-    
-    @Autowired
+	
+	private static Log log = LogFactory.getLog(RetryFailedTasks.class);
+	
+	private static ApplicationContext applicationContext;
+	
+	@Autowired
 	@Qualifier("labOrderFhirConfig")
 	private FhirConfig fhirConfig;
-    
-    @Autowired
-    private FhirTaskService fhirTaskService;
-    
-    @Autowired
-    private LabOnFhirService labOnFhirService;
-
-    @Autowired
-    @Qualifier("labOrderListener") 
-    private  OrderCreationListener orderCreationListener;
-
-    @Autowired
+	
+	@Autowired
+	private FhirTaskService fhirTaskService;
+	
+	@Autowired
+	private LabOnFhirService labOnFhirService;
+	
+	@Autowired
+	@Qualifier("labOrderListener")
+	private OrderCreationListener orderCreationListener;
+	
+	@Autowired
 	@Qualifier("fhirR4")
 	private FhirContext ctx;
-    
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
-    
-    @Override
-    public void execute() {
-        log.info("Executing Retry Failed tasks");
-        try {
-            applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
-        }
-        catch (Exception e) {}
-
-        retrySendingFailedTasks();
-    }
-    
-    private void retrySendingFailedTasks() {
-        List<FailedTask> failedTasks = labOnFhirService.getAllFailedTasks(false);
-        
-        failedTasks.forEach(failedTask -> {
-            Task task = fhirTaskService.get(failedTask.getTaskUuid());
-            if (task == null) {
-                return;
-            }
-            try {
-                Bundle labBundle = orderCreationListener.createLabBundle(task);
-                fhirConfig.getFhirClient().transaction().withBundle(labBundle).execute();
-                failedTask.setIsSent(true);
-                labOnFhirService.saveOrUpdateFailedTask(failedTask);
-                log.info("Resent Failed task:" + failedTask.getTaskUuid());
-                log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
-            }
-            catch (Exception e) {
-                log.error(e);
-            }
-        });
-    }
+	
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+	
+	@Override
+	public void execute() {
+		log.info("Executing Retry Failed tasks");
+		try {
+			applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
+		}
+		catch (Exception e) {}
+		
+		retrySendingFailedTasks();
+	}
+	
+	private void retrySendingFailedTasks() {
+		List<FailedTask> failedTasks = labOnFhirService.getAllFailedTasks(false);
+		
+		failedTasks.forEach(failedTask -> {
+			Task task = fhirTaskService.get(failedTask.getTaskUuid());
+			if (task == null) {
+				return;
+			}
+			try {
+				Bundle labBundle = orderCreationListener.createLabBundle(task);
+				fhirConfig.getFhirClient().transaction().withBundle(labBundle).execute();
+				failedTask.setIsSent(true);
+				labOnFhirService.saveOrUpdateFailedTask(failedTask);
+				log.info("Resent Failed task:" + failedTask.getTaskUuid());
+				log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
+			}
+			catch (Exception e) {
+				log.error(e);
+			}
+		});
+	}
 }

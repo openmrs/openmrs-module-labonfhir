@@ -58,52 +58,52 @@ import java.time.format.DateTimeFormatter;
 @Component
 @Setter(AccessLevel.PACKAGE)
 public class FetchTaskUpdates extends AbstractTask implements ApplicationContextAware {
-
+	
 	private static Log log = LogFactory.getLog(FetchTaskUpdates.class);
-
+	
 	private static ApplicationContext applicationContext;
-
+	
 	private static String LOINC_SYSTEM = "http://loinc.org";
-
+	
 	@Autowired
 	private LabOnFhirConfig config;
-
+	
 	@Autowired
 	@Qualifier("labOrderFhirConfig")
 	private FhirConfig fhirConfig;
-
+	
 	@Autowired
-    @Qualifier("fhirR4")
-    private FhirContext fhirContext;
-
+	@Qualifier("fhirR4")
+	private FhirContext fhirContext;
+	
 	@Autowired
 	private FhirTaskService taskService;
-
+	
 	@Autowired
 	private FhirDiagnosticReportService diagnosticReportService;
-
+	
 	@Autowired
 	FhirObservationDao observationDao;
-
+	
 	@Autowired
 	FhirObservationService observationService;
-
+	
 	@Autowired
 	OrderService orderService;
-
+	
 	@Autowired
 	ObservationReferenceTranslator observationReferenceTranslator;
-
+	
 	@Autowired
 	@Qualifier("sessionFactory")
 	SessionFactory sessionFactory;
-
+	
 	@Autowired
-    private LabOnFhirService labOnFhirService;
-
+	private LabOnFhirService labOnFhirService;
+	
 	@Autowired
-    private FhirPractitionerService practitionerService;
-
+	private FhirPractitionerService practitionerService;
+	
 	@Override
 	public void execute() {
 		
@@ -121,9 +121,9 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		try {
 			DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 			Date newDate = new Date();
-			ZoneId zone = ZoneId.systemDefault(); 
-            ZonedDateTime newZoneDate = newDate.toInstant().atZone(zone);
-
+			ZoneId zone = ZoneId.systemDefault();
+			ZonedDateTime newZoneDate = newDate.toInstant().atZone(zone);
+			
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTime(newDate);
 			calendar.add(Calendar.YEAR, -5);
@@ -136,7 +136,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			}
 			
 			String practitionerId = config.getLisUserUuid();
-
+			
 			String currentTime = dateFormat.format(newZoneDate);
 			DateRangeParam lastUpdated = new DateRangeParam().setLowerBound(lastRequestDate).setUpperBound(currentTime);
 			
@@ -146,32 +146,25 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			try {
 				practitionerService.get(config.getLisUserUuid());
 				userExists = true;
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				userExists = false;
 			}
 			if (userExists) {
 				taskBundle = fhirConfig.getFhirClient().search().forResource(Task.class)
-						.where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
-						.where(Task.OWNER.hasId(practitionerId))
-						.where(Task.STATUS.exactly().codes(
-								TaskStatus.COMPLETED.toCode(),
-								TaskStatus.ACCEPTED.toCode(),
-								TaskStatus.REJECTED.toCode(),
-								TaskStatus.CANCELLED.toCode()))
-						.lastUpdated(lastUpdated)
-						.returnBundle(Bundle.class).execute();
+				        .where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
+				        .where(Task.OWNER.hasId(practitionerId))
+				        .where(Task.STATUS.exactly().codes(TaskStatus.COMPLETED.toCode(), TaskStatus.ACCEPTED.toCode(),
+				            TaskStatus.REJECTED.toCode(), TaskStatus.CANCELLED.toCode()))
+				        .lastUpdated(lastUpdated).returnBundle(Bundle.class).execute();
 			} else {
 				taskBundle = fhirConfig.getFhirClient().search().forResource(Task.class)
-						.where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
-						.where(Task.STATUS.exactly().codes(
-								TaskStatus.COMPLETED.toCode(),
-								TaskStatus.ACCEPTED.toCode(),
-								TaskStatus.REJECTED.toCode(),
-								TaskStatus.CANCELLED.toCode()))
-						.lastUpdated(lastUpdated)
-						.returnBundle(Bundle.class).execute();
-
-			}	
+				        .where(Task.IDENTIFIER.hasSystemWithAnyCode(FhirConstants.OPENMRS_FHIR_EXT_TASK_IDENTIFIER))
+				        .where(Task.STATUS.exactly().codes(TaskStatus.COMPLETED.toCode(), TaskStatus.ACCEPTED.toCode(),
+				            TaskStatus.REJECTED.toCode(), TaskStatus.CANCELLED.toCode()))
+				        .lastUpdated(lastUpdated).returnBundle(Bundle.class).execute();
+				
+			}
 			
 			log.debug(fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(taskBundle));
 			List<Bundle> taskBundles = new ArrayList<>();
@@ -194,14 +187,14 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		
 		super.startExecuting();
 	}
-
+	
 	@Override
 	public void shutdown() {
 		log.debug("shutting down FetchTaskUpdates Task");
-
+		
 		this.stopExecuting();
 	}
-
+	
 	private Boolean updateTasksInBundle(List<Bundle> taskBundles) {
 		Boolean tasksUpdated = false;
 		String commentText = "Update Order with remote fhir status : ";
@@ -220,11 +213,11 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 					if (openmrsTask != null) {
 						// Handle status
 						if (openelisTask.getStatus().toString().equals(TaskStatus.COMPLETED.toString())) {
-
+							
 							openmrsTask.setStatus(openelisTask.getStatus());
-						
+							
 							Boolean taskOutPutUpdated = false;
-							if(openmrsTask.hasBasedOn()){
+							if (openmrsTask.hasBasedOn()) {
 								setOrderNumberFromLIS(openmrsTask.getBasedOn());
 							}
 							if (openelisTask.hasOutput()) {
@@ -236,25 +229,28 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 								tasksUpdated = taskOutPutUpdated;
 							}
 						}
-
-						if(openelisTask.getStatus().toString().equals(TaskStatus.REJECTED.toString()) ){
+						
+						if (openelisTask.getStatus().toString().equals(TaskStatus.REJECTED.toString())) {
 							openmrsTask.setStatus(openelisTask.getStatus());
-							commentText  = commentText + TaskStatus.REJECTED.toString();
-                            setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.EXCEPTION, commentText);
-							tasksUpdated = true;
-						}
-
-						if(openelisTask.getStatus().toString().equals(TaskStatus.CANCELLED.toString()) ){
-							openmrsTask.setStatus(openelisTask.getStatus());
-							commentText  = commentText + TaskStatus.CANCELLED.toString();
-                            setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.EXCEPTION, commentText);
+							commentText = commentText + TaskStatus.REJECTED.toString();
+							setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(),
+							    Order.FulfillerStatus.EXCEPTION, commentText);
 							tasksUpdated = true;
 						}
 						
-						if( openelisTask.getStatus().toString().equals(TaskStatus.ACCEPTED.toString()) ){
+						if (openelisTask.getStatus().toString().equals(TaskStatus.CANCELLED.toString())) {
 							openmrsTask.setStatus(openelisTask.getStatus());
-							commentText  = commentText + TaskStatus.ACCEPTED.toString();
-                            setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.IN_PROGRESS, commentText);
+							commentText = commentText + TaskStatus.CANCELLED.toString();
+							setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(),
+							    Order.FulfillerStatus.EXCEPTION, commentText);
+							tasksUpdated = true;
+						}
+						
+						if (openelisTask.getStatus().toString().equals(TaskStatus.ACCEPTED.toString())) {
+							openmrsTask.setStatus(openelisTask.getStatus());
+							commentText = commentText + TaskStatus.ACCEPTED.toString();
+							setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(),
+							    Order.FulfillerStatus.IN_PROGRESS, commentText);
 							tasksUpdated = true;
 						}
 					}
@@ -266,7 +262,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		}
 		return tasksUpdated;
 	}
-
+	
 	private void setOrderNumberFromLIS(List<Reference> basedOn) {
 		basedOn.forEach(ref -> {
 			if (ref.hasReferenceElement()) {
@@ -281,24 +277,25 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 							if (order != null) {
 								String commentText = "Update Order with Accesion Number From LIS";
 								String accessionNumber = serviceRequest.getRequisition().getValue();
-								orderService.updateOrderFulfillerStatus(order, Order.FulfillerStatus.COMPLETED,
-								    commentText, accessionNumber);
+								orderService.updateOrderFulfillerStatus(order, Order.FulfillerStatus.COMPLETED, commentText,
+								    accessionNumber);
 							}
 						}
 					}
 					catch (ResourceNotFoundException e) {
 						log.error(
 						    "Could not Fetch ServiceRequest/" + serviceRequestUuid + ":" + e.toString() + getStackTrace(e));
-					}catch(Exception e){
-
+					}
+					catch (Exception e) {
+						
 					}
 				}
 			}
 		});
 	}
-
+	
 	private Boolean updateOutput(List<Task.TaskOutputComponent> output, Task openmrsTask) {
-
+		
 		Reference encounterReference = openmrsTask.getEncounter();
 		List<Reference> basedOn = openmrsTask.getBasedOn();
 		List<String> allExistingLoincCodes = new ArrayList<>();
@@ -306,26 +303,25 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 		// openmrsTask.getOutput().stream().map(ouput -> ouput.getType().getCoding());
 		openmrsTask.getOutput().forEach(out -> {
 			out.getType().getCoding().stream().filter(coding -> coding.hasSystem())
-					.filter(coding -> coding.getSystem().equals(LOINC_SYSTEM))
-					.forEach(coding -> {
-						allExistingLoincCodes.add(coding.getCode());
-					});
+			        .filter(coding -> coding.getSystem().equals(LOINC_SYSTEM)).forEach(coding -> {
+				        allExistingLoincCodes.add(coding.getCode());
+			        });
 		});
 		if (!output.isEmpty()) {
-			try{
-			// Save each output entry
+			try {
+				// Save each output entry
 				for (Iterator outputRefI = output.stream().iterator(); outputRefI.hasNext();) {
 					Task.TaskOutputComponent outputRef = (Task.TaskOutputComponent) outputRefI.next();
 					String openelisDiagnosticReportUuid = ((Reference) outputRef.getValue()).getReferenceElement()
-							.getIdPart();
+					        .getIdPart();
 					// Get Diagnostic Report and associated Observations (using include)
 					Bundle diagnosticReportBundle = fhirConfig.getFhirClient().search().forResource(DiagnosticReport.class)
-							.where(new TokenClientParam("_id").exactly().code(openelisDiagnosticReportUuid))
-							.include(DiagnosticReport.INCLUDE_RESULT).include(DiagnosticReport.INCLUDE_SUBJECT)
-							.returnBundle(Bundle.class).execute();
-
+					        .where(new TokenClientParam("_id").exactly().code(openelisDiagnosticReportUuid))
+					        .include(DiagnosticReport.INCLUDE_RESULT).include(DiagnosticReport.INCLUDE_SUBJECT)
+					        .returnBundle(Bundle.class).execute();
+					
 					DiagnosticReport diagnosticReport = (DiagnosticReport) diagnosticReportBundle.getEntryFirstRep()
-							.getResource();
+					        .getResource();
 					Coding diagnosticReportCode = diagnosticReport.getCode().getCodingFirstRep();
 					if (diagnosticReportCode.getSystem().equals(LOINC_SYSTEM)) {
 						List<Reference> results = new ArrayList<>();
@@ -340,7 +336,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 										newObs = observationService.create(newObs);
 										Reference obsRef = new Reference();
 										obsRef.setReference(
-												ResourceType.Observation + "/" + newObs.getIdElement().getIdPart());
+										    ResourceType.Observation + "/" + newObs.getIdElement().getIdPart());
 										results.add(obsRef);
 									}
 								}
@@ -348,19 +344,22 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 							diagnosticReport.setResult(results);
 							diagnosticReport.setEncounter(encounterReference);
 							diagnosticReport = diagnosticReportService.create(diagnosticReport);
-							openmrsTask.addOutput().setValue(
-									new Reference().setType(FhirConstants.DIAGNOSTIC_REPORT)
-											.setReference(diagnosticReport.getIdElement().getIdPart()))
-									.setType(diagnosticReport.getCode());
+							openmrsTask.addOutput()
+							        .setValue(new Reference().setType(FhirConstants.DIAGNOSTIC_REPORT)
+							                .setReference(diagnosticReport.getIdElement().getIdPart()))
+							        .setType(diagnosticReport.getCode());
 							taskOutPutUpdated = true;
 						}
 					}
 				}
-			}catch(Exception e){}
+			}
+			catch (Exception e) {}
 		}
 		return taskOutPutUpdated;
 	}
-	private void setOrderStatus(List<Reference> basedOn, String string, FulfillerStatus fulfillerStatus, String commentText) {
+	
+	private void setOrderStatus(List<Reference> basedOn, String string, FulfillerStatus fulfillerStatus,
+	        String commentText) {
 		basedOn.forEach(ref -> {
 			if (ref.hasReferenceElement()) {
 				IIdType referenceElement = ref.getReferenceElement();
@@ -371,8 +370,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 						Order order = orderService.getOrderByUuid(serviceRequestUuid);
 						if (order != null) {
 							String accessionNumber = "";
-							orderService.updateOrderFulfillerStatus(order, fulfillerStatus,
-								commentText, accessionNumber);
+							orderService.updateOrderFulfillerStatus(order, fulfillerStatus, commentText, accessionNumber);
 						}
 						
 					}
@@ -384,7 +382,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			}
 		});
 	}
-
+	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
