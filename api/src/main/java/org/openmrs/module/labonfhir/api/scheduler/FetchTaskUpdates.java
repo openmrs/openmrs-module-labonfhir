@@ -30,7 +30,6 @@ import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.codesystems.TaskStatus;
 import org.openmrs.Order;
-import org.openmrs.Order.FulfillerStatus;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
@@ -224,9 +223,6 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 							openmrsTask.setStatus(openelisTask.getStatus());
 						
 							Boolean taskOutPutUpdated = false;
-							if(openmrsTask.hasBasedOn()){
-								setOrderNumberFromLIS(openmrsTask.getBasedOn());
-							}
 							if (openelisTask.hasOutput()) {
 								// openmrsTask.setOutput(openelisTask.getOutput());
 								taskOutPutUpdated = updateOutput(openelisTask.getOutput(), openmrsTask);
@@ -240,22 +236,22 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 						if(openelisTask.getStatus().toString().equals(TaskStatus.REJECTED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
 							commentText  = commentText + TaskStatus.REJECTED.toString();
-                            setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.EXCEPTION, commentText);
 							tasksUpdated = true;
+							log.debug("Lab On FHIR : OpenELIS Task Rejected");
 						}
 
 						if(openelisTask.getStatus().toString().equals(TaskStatus.CANCELLED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
 							commentText  = commentText + TaskStatus.CANCELLED.toString();
-                            setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.EXCEPTION, commentText);
 							tasksUpdated = true;
+							log.debug("Lab On FHIR : OpenELIS Task Cancelled");
 						}
 						
 						if( openelisTask.getStatus().toString().equals(TaskStatus.ACCEPTED.toString()) ){
 							openmrsTask.setStatus(openelisTask.getStatus());
 							commentText  = commentText + TaskStatus.ACCEPTED.toString();
-                            setOrderStatus(openmrsTask.getBasedOn(), openelisTask.getStatus().toCode(), Order.FulfillerStatus.IN_PROGRESS, commentText);
 							tasksUpdated = true;
+							log.debug("Lab On FHIR : OpenELIS Task Accepted");
 						}
 					}
 				}
@@ -265,36 +261,6 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			}
 		}
 		return tasksUpdated;
-	}
-
-	private void setOrderNumberFromLIS(List<Reference> basedOn) {
-		basedOn.forEach(ref -> {
-			if (ref.hasReferenceElement()) {
-				IIdType referenceElement = ref.getReferenceElement();
-				if ("ServiceRequest".equals(referenceElement.getResourceType())) {
-					String serviceRequestUuid = referenceElement.getIdPart();
-					try {
-						ServiceRequest serviceRequest = fhirConfig.getFhirClient().read().resource(ServiceRequest.class)
-						        .withId(serviceRequestUuid).execute();
-						if (serviceRequest.hasRequisition()) {
-							Order order = orderService.getOrderByUuid(serviceRequestUuid);
-							if (order != null) {
-								String commentText = "Update Order with Accesion Number From LIS";
-								String accessionNumber = serviceRequest.getRequisition().getValue();
-								orderService.updateOrderFulfillerStatus(order, Order.FulfillerStatus.COMPLETED,
-								    commentText, accessionNumber);
-							}
-						}
-					}
-					catch (ResourceNotFoundException e) {
-						log.error(
-						    "Could not Fetch ServiceRequest/" + serviceRequestUuid + ":" + e.toString() + getStackTrace(e));
-					}catch(Exception e){
-
-					}
-				}
-			}
-		});
 	}
 
 	private Boolean updateOutput(List<Task.TaskOutputComponent> output, Task openmrsTask) {
@@ -359,30 +325,6 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			}catch(Exception e){}
 		}
 		return taskOutPutUpdated;
-	}
-	private void setOrderStatus(List<Reference> basedOn, String string, FulfillerStatus fulfillerStatus, String commentText) {
-		basedOn.forEach(ref -> {
-			if (ref.hasReferenceElement()) {
-				IIdType referenceElement = ref.getReferenceElement();
-				if ("ServiceRequest".equals(referenceElement.getResourceType())) {
-					String serviceRequestUuid = referenceElement.getIdPart();
-					try {
-						
-						Order order = orderService.getOrderByUuid(serviceRequestUuid);
-						if (order != null) {
-							String accessionNumber = "";
-							orderService.updateOrderFulfillerStatus(order, fulfillerStatus,
-								commentText, accessionNumber);
-						}
-						
-					}
-					catch (ResourceNotFoundException e) {
-						log.error(
-						    "Could not Fetch ServiceRequest/" + serviceRequestUuid + ":" + e.toString() + getStackTrace(e));
-					}
-				}
-			}
-		});
 	}
 
 	@Override

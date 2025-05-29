@@ -19,7 +19,7 @@
             </list>
         </property>
     </bean>
-    <bean id="labOnFhirService"
+    <!-- <bean id="labOnFhirService"
             class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager">
             <ref bean="transactionManager" />
@@ -35,7 +35,7 @@
         <property name="transactionAttributeSource">
             <ref bean="transactionAttributeSource" />
         </property>
-    </bean>
+    </bean> -->
 
     <!-- Adds LabOnFhirService to OpenMRS context so it can be accessed
     calling Context.getService(LabOnFhirService.class) -->
@@ -47,4 +47,13 @@
             </list>
         </property>
     </bean>
+    <!-- <bean id="labEncounterListener" class="org.openmrs.module.labonfhir.api.event.EncounterCreationListener"></bean>
+    <bean id="labOrderListener" class="org.openmrs.module.labonfhir.api.event.OrderCreationListener"></bean>
+    <bean id="labOnFhirActivator" class="org.openmrs.module.labonfhir.LabOnFhirActivator"></bean>
+    <bean id="fetchTaskUpdates" class="org.openmrs.module.labonfhir.api.scheduler.FetchTaskUpdates"></bean>
+    <bean id="retryFailedTasks" class="org.openmrs.module.labonfhir.api.scheduler.RetryFailedTasks"></bean>
+    <bean id ="labOrderManager" class="org.openmrs.module.labonfhir.api.LabOrderManager"></bean>
+    <bean id="labOrderHandler" class="org.openmrs.module.labonfhir.api.LabOrderHandler"></bean>
+    <bean id="labOnFhirConfig" class="org.openmrs.module.labonfhir.LabOnFhirConfig"></bean>
+    <bean id="labOrderFhirConfig" class="org.openmrs.module.labonfhir.FhirConfig"></bean> -->
 </beans>
