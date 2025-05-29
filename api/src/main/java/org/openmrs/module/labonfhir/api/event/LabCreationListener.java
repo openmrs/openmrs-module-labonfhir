@@ -100,14 +100,7 @@ public abstract class LabCreationListener implements EventListener {
 		if (!task.getLocation().isEmpty()) {
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
 		}
-		if (!task.getOwner().isEmpty()) {
-			try {
-				practitionerService.get(config.getLisUserUuid());
-			} catch (Exception e) {
-				labResources
-						.add(practitionerService.get(FhirUtils.referenceToId(task.getOwner().getReference()).get()).setActive(true));
-			}
-		}
+	
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
