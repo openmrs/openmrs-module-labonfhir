@@ -6,6 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import org.openmrs.Encounter;
 import org.openmrs.GlobalProperty;
 import org.openmrs.Order;
+import org.openmrs.TestOrder;
 import org.openmrs.api.GlobalPropertyListener;
 import org.openmrs.event.Event;
 import org.openmrs.module.DaemonToken;
@@ -17,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("labOrderManager")
 public class LabOrderManager implements GlobalPropertyListener {
 
 	private static final Logger log = LoggerFactory.getLogger(LabOrderManager.class);
@@ -70,9 +71,8 @@ public class LabOrderManager implements GlobalPropertyListener {
 			}
 		} else if(config.getLabUpdateTriggerObject().equals("Order")) {
 			orderListener.setDaemonToken(daemonToken);
-
 			if (!isRunning.get()) {
-				Event.subscribe(Order.class, Event.Action.CREATED.toString(), orderListener);
+				Event.subscribe(TestOrder.class, Event.Action.CREATED.toString(), orderListener);
 			}
 		} else {
 			log.error("Could not enable LIS connection, invalid trigger object: " + config.getLabUpdateTriggerObject());

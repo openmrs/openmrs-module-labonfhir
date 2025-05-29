@@ -27,13 +27,17 @@ import org.openmrs.module.fhir2.api.FhirPractitionerService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.fhir.OrderCreationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import ca.uhn.fhir.context.FhirContext;
 
 @Component
 public class LabOrderHandler {
+	private static final Logger log = LoggerFactory.getLogger( LabOrderHandler.class);
 
 	@Autowired
 	private LabOnFhirConfig config;
@@ -46,6 +50,10 @@ public class LabOrderHandler {
 
 	@Autowired
 	private FhirPractitionerService practitionerService;
+
+	@Autowired
+    @Qualifier("fhirR4")
+    private FhirContext fhirContext;
 
 	public Task createOrder(Order order) throws OrderCreationException {
 		//TDO: MAKE THIS A GLOBAL CONFIG
@@ -206,7 +214,6 @@ public class LabOrderHandler {
 		
 		// Create Task Resource for given Order
 		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef ,taskInputs);
-		newTask.setLocation(locationRef);
 
 		if (!encounter.getActiveEncounterProviders().isEmpty()) {
 			newTask.setRequester(requesterRef);
@@ -215,6 +222,7 @@ public class LabOrderHandler {
 		// Save the new Task Resource
 		try {
 			newTask = taskService.create(newTask);
+		log.debug("Fhir Task Created " + fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(newTask));
 		}
 		catch (DAOException e) {
 			throw new OrderCreationException("Exception occurred while creating task for encounter " + encounter.getId());
