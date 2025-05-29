@@ -91,7 +91,6 @@ public abstract class LabCreationListener implements EventListener {
 		includes.add(new Include("Task:owner"));
 		includes.add(new Include("Task:encounter"));
 		includes.add(new Include("Task:based-on"));
-		includes.add(new Include("Task:location"));
 
 		IBundleProvider labBundle = fhirTaskService.searchForTasks(new TaskSearchParams(null, null , null ,null, null, uuid, null, null, includes));
 
@@ -101,14 +100,7 @@ public abstract class LabCreationListener implements EventListener {
 		if (!task.getLocation().isEmpty()) {
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
 		}
-		if (!task.getOwner().isEmpty()) {
-			try {
-				practitionerService.get(config.getLisUserUuid());
-			} catch (Exception e) {
-				labResources
-						.add(practitionerService.get(FhirUtils.referenceToId(task.getOwner().getReference()).get()).setActive(true));
-			}
-		}
+
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();

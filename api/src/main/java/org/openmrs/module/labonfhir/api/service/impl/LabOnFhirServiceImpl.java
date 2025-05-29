@@ -8,7 +8,9 @@ import org.openmrs.module.labonfhir.api.model.FailedTask;
 import org.openmrs.module.labonfhir.api.model.TaskRequest;
 import org.openmrs.module.labonfhir.api.service.LabOnFhirService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component("labOnFhirService")
 public class LabOnFhirServiceImpl implements LabOnFhirService{
     @Autowired
 	LabOnFhirDao dao;

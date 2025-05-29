@@ -19,7 +19,7 @@
             </list>
         </property>
     </bean>
-    <bean id="labOnFhirService"
+    <!-- <bean id="labOnFhirService"
             class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager">
             <ref bean="transactionManager" />
@@ -35,7 +35,7 @@
         <property name="transactionAttributeSource">
             <ref bean="transactionAttributeSource" />
         </property>
-    </bean>
+    </bean> -->
 
     <!-- Adds LabOnFhirService to OpenMRS context so it can be accessed
     calling Context.getService(LabOnFhirService.class) -->
