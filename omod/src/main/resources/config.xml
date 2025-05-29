@@ -134,6 +134,6 @@
 	<globalProperty>
 		<property>@MODULE_ID@.filterOrderBytestUuids</property>
 		<description>Allows filtering Oders by Test Uuuids</description>
-		<defaultValue>true</defaultValue>
+		<defaultValue>false</defaultValue>
 	</globalProperty>
 </module>

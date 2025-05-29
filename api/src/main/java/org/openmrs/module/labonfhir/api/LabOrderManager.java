@@ -19,58 +19,58 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class LabOrderManager implements GlobalPropertyListener {
-
+	
 	private static final Logger log = LoggerFactory.getLogger(LabOrderManager.class);
-
+	
 	public void setDaemonToken(DaemonToken daemonToken) {
 		this.daemonToken = daemonToken;
 	}
-
+	
 	private DaemonToken daemonToken;
-
+	
 	@Autowired
 	private LabOnFhirConfig config;
-
+	
 	@Autowired
 	private EncounterCreationListener encounterListener;
-
+	
 	@Autowired
 	private OrderCreationListener orderListener;
-
+	
 	private final AtomicBoolean isRunning = new AtomicBoolean(false);
-
+	
 	@Override
 	public boolean supportsPropertyName(String propertyName) {
 		return LabOnFhirConfig.GP_LIS_URL.equals(propertyName);
 	}
-
+	
 	@Override
 	public void globalPropertyChanged(GlobalProperty newValue) {
-		 log.trace("Notified of change to property {}", LabOnFhirConfig.GP_LIS_URL);
-
+		log.trace("Notified of change to property {}", LabOnFhirConfig.GP_LIS_URL);
+		
 		if (StringUtils.isNotBlank((String) newValue.getValue())) {
 			enableLisConnector();
 		} else {
 			disableLisConnector();
 		}
 	}
-
+	
 	@Override
 	public void globalPropertyDeleted(String propertyName) {
 		disableLisConnector();
 	}
-
+	
 	public void enableLisConnector() {
-		log.info("Enabling LIS FHIR Connector for "+config.getLabUpdateTriggerObject());
-		if(config.getLabUpdateTriggerObject().equals("Encounter")) {
+		log.info("Enabling LIS FHIR Connector for " + config.getLabUpdateTriggerObject());
+		if (config.getLabUpdateTriggerObject().equals("Encounter")) {
 			encounterListener.setDaemonToken(daemonToken);
-
+			
 			if (!isRunning.get()) {
 				Event.subscribe(Encounter.class, Event.Action.CREATED.toString(), encounterListener);
 			}
-		} else if(config.getLabUpdateTriggerObject().equals("Order")) {
+		} else if (config.getLabUpdateTriggerObject().equals("Order")) {
 			orderListener.setDaemonToken(daemonToken);
-
+			
 			if (!isRunning.get()) {
 				Event.subscribe(Order.class, Event.Action.CREATED.toString(), orderListener);
 			}
@@ -78,10 +78,10 @@ public class LabOrderManager implements GlobalPropertyListener {
 			log.error("Could not enable LIS connection, invalid trigger object: " + config.getLabUpdateTriggerObject());
 			return;
 		}
-
+		
 		isRunning.set(true);
 	}
-
+	
 	public void disableLisConnector() {
 		log.info("Disabling LIS FHIR Connector");
 		if (isRunning.get() && config.getLabUpdateTriggerObject().equals("Order")) {
