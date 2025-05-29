@@ -37,24 +37,25 @@ import ca.uhn.fhir.context.FhirContext;
 
 @Component
 public class LabOrderHandler {
-	private static final Logger log = LoggerFactory.getLogger( LabOrderHandler.class);
-
+	
+	private static final Logger log = LoggerFactory.getLogger(LabOrderHandler.class);
+	
 	@Autowired
 	private LabOnFhirConfig config;
-
+	
 	@Autowired
 	private FhirTaskService taskService;
-
+	
 	@Autowired
 	private FhirObservationService observationService;
-
+	
 	@Autowired
 	private FhirPractitionerService practitionerService;
-
+	
 	@Autowired
-    @Qualifier("fhirR4")
-    private FhirContext fhirContext;
-
+	@Qualifier("fhirR4")
+	private FhirContext fhirContext;
+	
 	public Task createOrder(Order order) throws OrderCreationException {
 		//TDO: MAKE THIS A GLOBAL CONFIG
 		final String REQUIRED_TESTS_UUIDS = config.getOrderTestUuids(); // GeneXpert
@@ -62,7 +63,7 @@ public class LabOrderHandler {
 		boolean mappedTestsExist = false;
 		for (Obs obs : order.getEncounter().getObs()) {
 			if (Arrays.stream(REQUIRED_TESTS_UUIDS.split(",")).anyMatch(s -> s.equals(obs.getConcept().getUuid())
-					|| (obs.getValueCoded() != null && s.equals(obs.getValueCoded().getUuid())))) {
+			        || (obs.getValueCoded() != null && s.equals(obs.getValueCoded().getUuid())))) {
 				mappedTestsExist = true;
 			}
 		}
@@ -70,7 +71,7 @@ public class LabOrderHandler {
 		if (!mappedTestsExist && config.filterOrderByTestUuuids()) {
 			return null;
 		}
-
+		
 		List<Task.ParameterComponent> taskInputs = null;
 		if (config.addObsAsTaskInput()) {
 			taskInputs = new ArrayList<>();
@@ -97,8 +98,8 @@ public class LabOrderHandler {
 			}
 		}
 		// Create References
-		List<Reference> basedOnRefs = Collections.singletonList(
-				newReference(order.getUuid(), FhirConstants.SERVICE_REQUEST));
+		List<Reference> basedOnRefs = Collections
+		        .singletonList(newReference(order.getUuid(), FhirConstants.SERVICE_REQUEST));
 		
 		Reference forReference = newReference(order.getPatient().getUuid(), FhirConstants.PATIENT);
 		
@@ -107,21 +108,23 @@ public class LabOrderHandler {
 		Reference encounterRef = newReference(order.getEncounter().getUuid(), FhirConstants.ENCOUNTER);
 		
 		Optional<EncounterProvider> requesterProvider = order.getEncounter().getActiveEncounterProviders().stream()
-				.findFirst();
+		        .findFirst();
 		
-		Reference requesterRef = requesterProvider.isPresent()? newReference(requesterProvider.get().getProvider().getUuid(), FhirConstants.PRACTITIONER) : null;
+		Reference requesterRef = requesterProvider.isPresent()
+		        ? newReference(requesterProvider.get().getProvider().getUuid(), FhirConstants.PRACTITIONER)
+		        : null;
 		
 		try {
 			practitionerService.get(config.getLisUserUuid());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			if (requesterRef != null) {
 				ownerRef = requesterRef;
 			} else {
 				ownerRef = newReference(order.getEncounter().getCreator().getUuid(), FhirConstants.PRACTITIONER);
 			}
-
+			
 		}
-		
 		
 		Reference locationRef = null;
 		if (order.getEncounter().getLocation() != null) {
@@ -129,8 +132,8 @@ public class LabOrderHandler {
 		}
 		
 		// Create Task Resource for given Order
-		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef ,taskInputs);
-
+		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef, taskInputs);
+		
 		if (order.getEncounter().getActiveEncounterProviders().isEmpty()) {
 			newTask.setRequester(requesterRef);
 		}
@@ -144,9 +147,9 @@ public class LabOrderHandler {
 		}
 		return newTask;
 	}
-
-	private Task createTask(List<Reference> basedOnRefs, Reference forReference, Reference ownerRef,
-			Reference encounterRef, Reference locationRef ,List<Task.ParameterComponent> taskInputs) {
+	
+	private Task createTask(List<Reference> basedOnRefs, Reference forReference, Reference ownerRef, Reference encounterRef,
+	        Reference locationRef, List<Task.ParameterComponent> taskInputs) {
 		Task newTask = new Task();
 		newTask.setStatus(Task.TaskStatus.REQUESTED);
 		newTask.setIntent(Task.TaskIntent.ORDER);
@@ -160,7 +163,7 @@ public class LabOrderHandler {
 		}
 		return newTask;
 	}
-
+	
 	public Task createOrder(Encounter encounter) throws OrderCreationException {
 		if (encounter.getOrders().isEmpty()) {
 			return null;
@@ -169,30 +172,31 @@ public class LabOrderHandler {
 		List<Reference> basedOnRefs = encounter.getOrders().stream().map(order -> {
 			AtomicReference<Order> orders = new AtomicReference<>();
 			orders.set(order);
-
+			
 			if (orders.get() != null) {
 				return newReference(orders.get().getUuid(), FhirConstants.SERVICE_REQUEST);
 			} else {
 				return null;
 			}
 		}).collect(Collectors.toList());
-
+		
 		Reference forReference = newReference(encounter.getPatient().getUuid(), FhirConstants.PATIENT);
-
+		
 		Reference ownerRef = newReference(config.getLisUserUuid(), FhirConstants.PRACTITIONER);
-
+		
 		Reference encounterRef = newReference(encounter.getUuid(), FhirConstants.ENCOUNTER);
-
+		
 		Reference locationRef = newReference(encounter.getLocation().getUuid(), FhirConstants.LOCATION);
-
+		
 		Optional<EncounterProvider> requesterProvider = encounter.getActiveEncounterProviders().stream().findFirst();
-
-		Reference requesterRef = requesterProvider.isPresent() ?
-				newReference(requesterProvider.get().getProvider().getUuid(), FhirConstants.PRACTITIONER) :
-				null;
+		
+		Reference requesterRef = requesterProvider.isPresent()
+		        ? newReference(requesterProvider.get().getProvider().getUuid(), FhirConstants.PRACTITIONER)
+		        : null;
 		try {
 			practitionerService.get(config.getLisUserUuid());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			if (requesterRef != null) {
 				ownerRef = requesterRef;
 			} else {
@@ -213,25 +217,26 @@ public class LabOrderHandler {
 		}
 		
 		// Create Task Resource for given Order
-		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef ,taskInputs);
-
+		Task newTask = createTask(basedOnRefs, forReference, ownerRef, encounterRef, locationRef, taskInputs);
+		
 		if (!encounter.getActiveEncounterProviders().isEmpty()) {
 			newTask.setRequester(requesterRef);
 		}
-
+		
 		// Save the new Task Resource
 		try {
 			newTask = taskService.create(newTask);
-		log.debug("Fhir Task Created " + fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(newTask));
+			log.debug(
+			    "Fhir Task Created " + fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(newTask));
 		}
 		catch (DAOException e) {
 			throw new OrderCreationException("Exception occurred while creating task for encounter " + encounter.getId());
 		}
 		return newTask;
 	}
-
+	
 	private Reference newReference(String uuid, String type) {
 		return new Reference().setReference(type + "/" + uuid).setType(type);
 	}
-
+	
 }

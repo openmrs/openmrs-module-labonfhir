@@ -32,46 +32,46 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.openmrs.module.fhir2.api.search.param.TaskSearchParams;
 
 public abstract class LabCreationListener implements EventListener {
-
+	
 	private static final Logger log = LoggerFactory.getLogger(EncounterCreationListener.class);
-
+	
 	private DaemonToken daemonToken;
-
+	
 	@Autowired
 	@Qualifier("labOrderFhirConfig")
 	private FhirConfig fhirConfig;
-
+	
 	@Autowired
 	private LabOnFhirConfig config;
-
+	
 	@Autowired
 	@Qualifier("fhirR4")
 	private FhirContext ctx;
-
+	
 	@Autowired
-	FhirLocationService fhirLocationService ;
-
+	FhirLocationService fhirLocationService;
+	
 	@Autowired
 	private FhirTaskService fhirTaskService;
-
+	
 	@Autowired
-	private LabOnFhirService labOnFhirService ;
-
+	private LabOnFhirService labOnFhirService;
+	
 	@Autowired
 	private FhirPractitionerService practitionerService;
-
+	
 	public DaemonToken getDaemonToken() {
 		return daemonToken;
 	}
-
+	
 	public void setDaemonToken(DaemonToken daemonToken) {
 		this.daemonToken = daemonToken;
 	}
-
+	
 	@Override
 	public void onMessage(Message message) {
 		log.trace("Received message {}", message);
-
+		
 		Daemon.runInDaemonThread(() -> {
 			try {
 				processMessage(message);
@@ -81,9 +81,9 @@ public abstract class LabCreationListener implements EventListener {
 			}
 		}, daemonToken);
 	}
-
+	
 	public abstract void processMessage(Message message);
-
+	
 	public Bundle createLabBundle(Task task) {
 		TokenAndListParam uuid = new TokenAndListParam().addAnd(new TokenParam(task.getIdElement().getIdPart()));
 		HashSet<Include> includes = new HashSet<>();
@@ -91,27 +91,28 @@ public abstract class LabCreationListener implements EventListener {
 		includes.add(new Include("Task:owner"));
 		includes.add(new Include("Task:encounter"));
 		includes.add(new Include("Task:based-on"));
-
-		IBundleProvider labBundle = fhirTaskService.searchForTasks(new TaskSearchParams(null, null, null, uuid, null, null, includes));
-
+		
+		IBundleProvider labBundle = fhirTaskService
+		        .searchForTasks(new TaskSearchParams(null, null, null, uuid, null, null, includes));
+		
 		Bundle transactionBundle = new Bundle();
 		transactionBundle.setType(Bundle.BundleType.TRANSACTION);
 		List<IBaseResource> labResources = labBundle.getAllResources();
 		if (!task.getLocation().isEmpty()) {
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
 		}
-	
+		
 		for (IBaseResource r : labResources) {
 			Resource resource = (Resource) r;
 			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
 			component.setResource(resource);
 			component.getRequest().setUrl(resource.fhirType() + "/" + resource.getIdElement().getIdPart())
 			        .setMethod(Bundle.HTTPVerb.PUT);
-
+			
 		}
 		return transactionBundle;
 	}
-
+	
 	protected void sendTask(Task task) {
 		if (task != null) {
 			if (config.getActivateFhirPush()) {
@@ -120,15 +121,16 @@ public abstract class LabCreationListener implements EventListener {
 					fhirConfig.getFhirClient().transaction().withBundle(labBundle).execute();
 				}
 				catch (Exception e) {
-					saveFailedTask(task.getIdElement().getIdPart(), e.getCause() != null ? e.getCause().getMessage() : e.getMessage().substring(0, 100));
+					saveFailedTask(task.getIdElement().getIdPart(),
+					    e.getCause() != null ? e.getCause().getMessage() : e.getMessage().substring(0, 100));
 					log.error("Failed to send Task with UUID " + task.getIdElement().getIdPart(), e.getMessage());
 				}
 				log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
 			}
 		}
 	}
-
-	private void saveFailedTask(String taskUuid ,String error) {
+	
+	private void saveFailedTask(String taskUuid, String error) {
 		FailedTask failedTask = new FailedTask();
 		failedTask.setError(error);
 		failedTask.setIsSent(false);
