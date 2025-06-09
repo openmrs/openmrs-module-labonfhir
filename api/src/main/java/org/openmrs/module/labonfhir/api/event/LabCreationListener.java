@@ -1,24 +1,38 @@
 package org.openmrs.module.labonfhir.api.event;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import javax.jms.Message;
+
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.model.api.Include;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.param.TokenAndListParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import lombok.Getter;
+import lombok.Setter;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.Subscription;
+import org.hl7.fhir.r4.model.Subscription.SubscriptionStatus;
+import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 import org.hl7.fhir.r4.model.Task;
+import org.hl7.fhir.r4.model.Narrative.NarrativeStatus;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
+import org.openmrs.module.fhir2.FhirConstants;
+import org.openmrs.module.fhir2.api.FhirGlobalPropertyService;
 import org.openmrs.module.fhir2.api.FhirLocationService;
-import org.openmrs.module.fhir2.api.FhirPractitionerService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.fhir2.api.util.FhirUtils;
 import org.openmrs.module.labonfhir.FhirConfig;
@@ -57,8 +71,9 @@ public abstract class LabCreationListener implements EventListener {
 	@Autowired
 	private LabOnFhirService labOnFhirService;
 	
-	@Autowired
-	private FhirPractitionerService practitionerService;
+	@Getter(value = PROTECTED)
+	@Setter(value = PROTECTED, onMethod_ = @Autowired)
+	private FhirGlobalPropertyService globalPropertyService;
 	
 	public DaemonToken getDaemonToken() {
 		return daemonToken;
@@ -110,7 +125,45 @@ public abstract class LabCreationListener implements EventListener {
 			        .setMethod(Bundle.HTTPVerb.PUT);
 			
 		}
+		Optional<Subscription> subscription = createSubscriptionForTaskRequestUpdates(task);
+		if (subscription.isPresent()) {
+			Bundle.BundleEntryComponent component = transactionBundle.addEntry();
+			component.setResource(subscription.get());
+			component.getRequest()
+			        .setUrl(subscription.get().fhirType() + "/" + subscription.get().getIdElement().getIdPart())
+			        .setMethod(Bundle.HTTPVerb.PUT);
+		}
+		
 		return transactionBundle;
+	}
+	
+	private Optional<Subscription> createSubscriptionForTaskRequestUpdates(Task task) {
+		String restHookUsername = globalPropertyService.getGlobalProperty(LabOnFhirConfig.GP_REST_HOOK_USERNAME);
+		String restHookPassword = globalPropertyService.getGlobalProperty(LabOnFhirConfig.GP_REST_HOOK_PASSWORD);
+		String restHookBaseEndpoint = globalPropertyService.getGlobalProperty(LabOnFhirConfig.GP_REST_HOOK_BASE_ENDPOINT);
+		
+		if (restHookBaseEndpoint == null || restHookBaseEndpoint.isEmpty()) {
+			log.warn("Rest Hook endpoint is empty. Subscription will not be created.");
+			return Optional.empty();
+		}
+		if (restHookUsername == null || restHookUsername.isEmpty() || restHookPassword == null
+		        || restHookPassword.isEmpty()) {
+			log.warn("Rest Hook configuration is incomplete. Subscription will not contain authentication credentials.");
+		}
+		
+		Subscription subscription = new Subscription();
+		subscription.setId(UUID.randomUUID().toString());
+		subscription.setChannel(
+		    new Subscription.SubscriptionChannelComponent().setType(Subscription.SubscriptionChannelType.RESTHOOK)
+		            .setEndpoint(restHookBaseEndpoint + "/taskRequestUpdate/" + task.getIdElement().getIdPart())
+		            .addHeader("Authorization: Basic "
+		                    + Base64.getEncoder().encodeToString((restHookUsername + ":" + restHookPassword).getBytes())));
+		subscription.setStatus(SubscriptionStatus.REQUESTED);
+		subscription.setCriteria("Task?" + Task.SP_RES_ID + "=" + task.getIdElement().getIdPart());
+		subscription.setReason("Subscription for Task updates that belong to an OpenMRS instance");
+		subscription.setText(new Narrative().setStatus(NarrativeStatus.GENERATED)
+		        .setDiv(new XhtmlNode().addText("Subscription for Task updates that belong to an OpenMRS instance")));
+		return Optional.of(subscription);
 	}
 	
 	protected void sendTask(Task task) {

@@ -1,25 +1,18 @@
 package org.openmrs.module.labonfhir.api.scheduler;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.openmrs.module.fhir2.api.FhirTaskService;
+import org.openmrs.module.labonfhir.api.service.FetchTaskUpdatesService;
 import org.springframework.stereotype.Component;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -30,19 +23,19 @@ public class FetchTaskUpdatesTest {
 	
 	private static final String OPENELIS_TASK_UUID = "55fdc8ad-fe4d-499b-93a8-8a991c1d4788";
 	
-	private FetchTaskUpdates updateTask;
+	private FetchTaskUpdates taskUpdates;
 	
 	@Mock
 	private Bundle taskBundle;
-	
+
 	@Mock
-	private FhirTaskService taskService;
+	private FetchTaskUpdatesService fetchTaskUpdatesService;
 	
 	@Before
 	public void setup() {
-		updateTask = new FetchTaskUpdates();
+		taskUpdates = new FetchTaskUpdates();
 		
-		updateTask.setTaskService(taskService);
+		taskUpdates.setFetchTaskUpdatesService(fetchTaskUpdatesService);;
 	}
 	
 	@Test
@@ -65,9 +58,6 @@ public class FetchTaskUpdatesTest {
 		Bundle.BundleEntryComponent bec = new Bundle.BundleEntryComponent().setResource(openelisTask);
 		
 		when(taskBundle.getEntry()).thenReturn(Collections.singletonList(bec));
-		when(taskService.get(OPENMRS_TASK_UUID)).thenReturn(openelisTask);
-		when(taskService.update(Matchers.eq(OPENMRS_TASK_UUID), Matchers.any(Task.class))).thenReturn(updatedOpenmrsTask);
-		
 		// Collection<Task> result = updateTask.updateTasksInBundle(taskBundle);
 		
 		// assertThat(result, hasSize(1));
