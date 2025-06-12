@@ -31,7 +31,7 @@
             <column name="repeat_interval" value="30" />
             <column name="date_created" valueDate="CURRENT_TIMESTAMP" />
             <column name="created_by" value="1" />
-            <column name="start_on_startup" value="1"/>
+            <column name="start_on_startup" value="0"/>
             <column name="started" value="0"/>
             <column name="uuid" value="8c17b376-1a2v-11e1-a51a-00248140a5eb" />
         </insert>
@@ -122,6 +122,16 @@
             <tableExists tableName="failed_task"/>
         </preConditions>
         <renameTable oldTableName="failed_task" newTableName="lab_on_fhir_failed_task"/>
+    </changeSet>
+    <changeSet id="update-start-on-startup-openelis-task-2025-06-12" author="siddharth">
+        <comment>Set start_on_startup to 1 for OpenELIS Pull Task</comment>
+        <update tableName="scheduler_task_config">
+            <column name="start_on_startup" valueNumeric="1"/>
+            <where>
+                schedulable_class = 'org.openmrs.module.labonfhir.api.scheduler.FetchTaskUpdates'
+                AND name = 'OpenELIS Pull Task'
+            </where>
+        </update>
     </changeSet>
 </databaseChangeLog>
 
