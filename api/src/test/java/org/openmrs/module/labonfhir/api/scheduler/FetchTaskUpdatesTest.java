@@ -27,7 +27,7 @@ public class FetchTaskUpdatesTest {
 	
 	@Mock
 	private Bundle taskBundle;
-
+	
 	@Mock
 	private FetchTaskUpdatesService fetchTaskUpdatesService;
 	
@@ -35,7 +35,7 @@ public class FetchTaskUpdatesTest {
 	public void setup() {
 		taskUpdates = new FetchTaskUpdates();
 		
-		taskUpdates.setFetchTaskUpdatesService(fetchTaskUpdatesService);;
+		taskUpdates.setFetchTaskUpdatesService(fetchTaskUpdatesService);
 	}
 	
 	@Test

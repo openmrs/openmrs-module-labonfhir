@@ -36,7 +36,7 @@ public class FetchTaskUpdatesServiceImplTest {
 	public void setup() {
 		fetchTaskUpdatesService = new FetchTaskUpdatesServiceImpl();
 		
-		fetchTaskUpdatesService.setTaskService(taskService);;
+		fetchTaskUpdatesService.setTaskService(taskService);
 	}
 	
 	@Test

@@ -22,28 +22,29 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 @Controller
+@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/taskRequestUpdate")
 public class FhirRestHookReceiver extends BaseRestController {
-
+	
 	@Autowired
 	private FetchTaskUpdatesService fetchTaskUpdatesService;
 	
-	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/taskRequestUpdate/", method = RequestMethod.POST)
+	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	public Object fetchTaskUpdates(HttpServletRequest request, HttpServletResponse response)
 	        throws ResponseException, JsonParseException, JsonMappingException, IOException {
 		
 		fetchTaskUpdatesService.fetchTaskUpdates(null);
 		
-		return RestUtil.noContent(response);
+		return RestUtil.updated(response, "");
 	}
 	
-	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/taskRequestUpdate/{uuid}", method = RequestMethod.POST)
+	@RequestMapping(value = "/{uuid}", method = RequestMethod.POST)
 	@ResponseBody
 	public Object fetchTaskUpdates(@PathVariable UUID uuid, HttpServletRequest request, HttpServletResponse response)
 	        throws ResponseException, JsonParseException, JsonMappingException, IOException {
 		
 		fetchTaskUpdatesService.fetchTaskUpdates(uuid);
 		
-		return RestUtil.noContent(response);
+		return RestUtil.updated(response, "");
 	}
 }
