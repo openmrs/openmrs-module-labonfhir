@@ -68,6 +68,12 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	
 	public static final String GP_FILTER_ORDER_BY_TEST_UUIDS = "labonfhir.filterOrderBytestUuids";
 	
+	public static final String GP_REST_HOOK_USERNAME = "labonfhir.restHook.username";
+	
+	public static final String GP_REST_HOOK_PASSWORD = "labonfhir.restHook.password";
+	
+	public static final String GP_REST_HOOK_BASE_ENDPOINT = "labonfhir.restHook.baseEndpoint";
+	
 	public enum AuthType {
 		SSL,
 		BASIC
@@ -111,7 +117,7 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	}
 	
 	public String getLisUrl() {
-		//return GP_OPENELIS_URL
+		// return GP_OPENELIS_URL
 		String url = administrationService.getGlobalProperty(GP_LIS_URL);
 		
 		if (StringUtils.isBlank(url)) {
@@ -184,6 +190,21 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	
 	public Practitioner getLisPractitioner() {
 		return practitionerService.get(getLisUserUuid());
+	}
+	
+	public String getRestHookUsername() {
+		String username = administrationService.getGlobalProperty(GP_REST_HOOK_USERNAME);
+		return username;
+	}
+	
+	public String getRestHookPassword() {
+		String password = administrationService.getGlobalProperty(GP_REST_HOOK_PASSWORD);
+		return password;
+	}
+	
+	public String getRestHookBaseEndpoint() {
+		String url = administrationService.getGlobalProperty(GP_REST_HOOK_BASE_ENDPOINT);		
+		return url;
 	}
 	
 	private KeyStore loadKeystore(String filePath) {

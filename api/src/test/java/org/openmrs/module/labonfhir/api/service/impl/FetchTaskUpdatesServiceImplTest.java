@@ -1,4 +1,4 @@
-package org.openmrs.module.labonfhir.api.scheduler;
+package org.openmrs.module.labonfhir.api.service.impl;
 
 import static org.mockito.Mockito.when;
 
@@ -10,32 +10,33 @@ import org.hl7.fhir.r4.model.Task;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.openmrs.module.labonfhir.api.service.FetchTaskUpdatesService;
+import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.springframework.stereotype.Component;
 
 @RunWith(MockitoJUnitRunner.class)
 @Component
-public class FetchTaskUpdatesTest {
+public class FetchTaskUpdatesServiceImplTest {
 	
 	private static final String OPENMRS_TASK_UUID = "44fdc8ad-fe4d-499b-93a8-8a991c1d477e";
 	
 	private static final String OPENELIS_TASK_UUID = "55fdc8ad-fe4d-499b-93a8-8a991c1d4788";
 	
-	private FetchTaskUpdates taskUpdates;
+	private FetchTaskUpdatesServiceImpl fetchTaskUpdatesService;
 	
 	@Mock
 	private Bundle taskBundle;
 	
 	@Mock
-	private FetchTaskUpdatesService fetchTaskUpdatesService;
+	private FhirTaskService taskService;
 	
 	@Before
 	public void setup() {
-		taskUpdates = new FetchTaskUpdates();
+		fetchTaskUpdatesService = new FetchTaskUpdatesServiceImpl();
 		
-		taskUpdates.setFetchTaskUpdatesService(fetchTaskUpdatesService);
+		fetchTaskUpdatesService.setTaskService(taskService);
 	}
 	
 	@Test
@@ -58,6 +59,9 @@ public class FetchTaskUpdatesTest {
 		Bundle.BundleEntryComponent bec = new Bundle.BundleEntryComponent().setResource(openelisTask);
 		
 		when(taskBundle.getEntry()).thenReturn(Collections.singletonList(bec));
+		when(taskService.get(OPENMRS_TASK_UUID)).thenReturn(openelisTask);
+		when(taskService.update(Matchers.eq(OPENMRS_TASK_UUID), Matchers.any(Task.class))).thenReturn(updatedOpenmrsTask);
+		
 		// Collection<Task> result = updateTask.updateTasksInBundle(taskBundle);
 		
 		// assertThat(result, hasSize(1));
