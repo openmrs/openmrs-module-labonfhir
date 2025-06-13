@@ -192,6 +192,21 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		return practitionerService.get(getLisUserUuid());
 	}
 	
+	public String getRestHookUsername() {
+		String username = administrationService.getGlobalProperty(GP_REST_HOOK_USERNAME);
+		return username;
+	}
+	
+	public String getRestHookPassword() {
+		String password = administrationService.getGlobalProperty(GP_REST_HOOK_PASSWORD);
+		return password;
+	}
+	
+	public String getRestHookBaseEndpoint() {
+		String url = administrationService.getGlobalProperty(GP_REST_HOOK_BASE_ENDPOINT);		
+		return url;
+	}
+	
 	private KeyStore loadKeystore(String filePath) {
 		InputStream is = null;
 		KeyStore keystore = null;

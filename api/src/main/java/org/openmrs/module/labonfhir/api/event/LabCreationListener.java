@@ -138,9 +138,9 @@ public abstract class LabCreationListener implements EventListener {
 	}
 	
 	private Optional<Subscription> createSubscriptionForTaskRequestUpdates(Task task) {
-		String restHookUsername = globalPropertyService.getGlobalProperty(LabOnFhirConfig.GP_REST_HOOK_USERNAME);
-		String restHookPassword = globalPropertyService.getGlobalProperty(LabOnFhirConfig.GP_REST_HOOK_PASSWORD);
-		String restHookBaseEndpoint = globalPropertyService.getGlobalProperty(LabOnFhirConfig.GP_REST_HOOK_BASE_ENDPOINT);
+		String restHookUsername = config.getRestHookUsername();
+		String restHookPassword = config.getRestHookPassword();
+		String restHookBaseEndpoint = config.getRestHookBaseEndpoint();
 		
 		if (restHookBaseEndpoint == null || restHookBaseEndpoint.isEmpty()) {
 			log.warn("Rest Hook endpoint is empty. Subscription will not be created.");
