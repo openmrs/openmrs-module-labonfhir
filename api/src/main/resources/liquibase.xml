@@ -123,6 +123,16 @@
         </preConditions>
         <renameTable oldTableName="failed_task" newTableName="lab_on_fhir_failed_task"/>
     </changeSet>
+    <changeSet id="update-start-on-startup-openelis-task-2025-06-12" author="siddharth">
+        <comment>Set start_on_startup to 1 for OpenELIS Pull Task</comment>
+        <update tableName="scheduler_task_config">
+            <column name="start_on_startup" valueNumeric="1"/>
+            <where>
+                schedulable_class = 'org.openmrs.module.labonfhir.api.scheduler.FetchTaskUpdates'
+                AND name = 'OpenELIS Pull Task'
+            </where>
+        </update>
+    </changeSet>
 </databaseChangeLog>
 
 
