@@ -17,6 +17,7 @@ import org.hl7.fhir.r4.model.Task;
 import org.openmrs.api.context.Daemon;
 import org.openmrs.event.EventListener;
 import org.openmrs.module.DaemonToken;
+import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirLocationService;
 import org.openmrs.module.fhir2.api.FhirPractitionerService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
@@ -100,6 +101,16 @@ public abstract class LabCreationListener implements EventListener {
 		List<IBaseResource> labResources = labBundle.getAllResources();
 		if (!task.getLocation().isEmpty()) {
 			labResources.add(fhirLocationService.get(FhirUtils.referenceToId(task.getLocation().getReference()).get()));
+		}
+		boolean practtionerIncluded = false;
+		for (IBaseResource r : labResources) {
+			if (((Resource) r).fhirType().equals(FhirConstants.PRACTITIONER)) {
+				practtionerIncluded = true;
+			}
+		}
+		if (!practtionerIncluded) {
+			labResources.add(
+			    practitionerService.get(FhirUtils.referenceToId(task.getOwner().getReference()).get()).setActive(true));
 		}
 		
 		for (IBaseResource r : labResources) {
