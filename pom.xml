@@ -9,7 +9,7 @@
 
   <groupId>org.openmrs.module</groupId>
   <artifactId>labonfhir</artifactId>
-  <version>1.5.1-SNAPSHOT</version>
+  <version>1.5.1</version>
   <packaging>pom</packaging>
   <name>Lab on FHIR</name>
   <description>A module to support lab order communication between OpenMRS and an LIS like OpenELIS using FHIR-based
@@ -22,7 +22,7 @@
     <connection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</connection>
     <developerConnection>scm:git:git@github.com:openmrs/openmrs-module-labonfhir.git</developerConnection>
     <url>https://github.com/openmrs/openmrs-module-labonfhir/</url>
-     <tag>HEAD</tag>
+     <tag>1.5.1</tag>
   </scm>
 
   <developers>
