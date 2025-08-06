@@ -247,8 +247,8 @@
   <properties>
     <fhir2Version>2.2.0</fhir2Version>
     <restVersion>2.26.0</restVersion>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
     <openmrsPlatformVersion>2.3.1</openmrsPlatformVersion>
