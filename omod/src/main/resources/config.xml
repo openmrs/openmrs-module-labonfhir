@@ -19,7 +19,7 @@
 	<!-- <updateURL>https://modules.openmrs.org/modules/download/@MODULE_ID@/update.rdf</updateURL> -->
 	<!-- /Base Module Properties -->
 	
-	<require_version>2.0.5</require_version>
+	<require_version>2.6.0</require_version>
 	
 	<!-- Extensions -->
 	<extension>
@@ -64,22 +64,22 @@
 	<globalProperty>
 		<property>@MODULE_ID@.keystorePath</property>
 		<description>Path to keystore for HttpClient</description>
-		<defaultValue>/ssl/lf.keystore</defaultValue>
+		<defaultValue> </defaultValue>
 	</globalProperty>
 	<globalProperty>
-		<property>@MODULE_ID@.keystorePass</property>
+		<property>@MODULE_ID@.keystorepass</property>
 		<description>Keystore password</description>
-		<defaultValue>testtest</defaultValue>
+		<defaultValue> </defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.truststorePath</property>
 		<description>Path to truststore for HttpClient</description>
-		<defaultValue>/ssl/lf.truststore</defaultValue>
+		<defaultValue> </defaultValue>
 	</globalProperty>
 	<globalProperty>
-		<property>@MODULE_ID@.truststorePass</property>
+		<property>@MODULE_ID@.truststorepass</property>
 		<description>Truststore password</description>
-		<defaultValue>testtest</defaultValue>
+		<defaultValue> </defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.activateFhirPush</property>
@@ -99,7 +99,7 @@
 	<globalProperty>
 		<property>@MODULE_ID@.password</property>
 		<description>Password for HTTP Basic Auth with the LIS</description>
-		<defaultValue>password</defaultValue>
+		<defaultValue> </defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.openmrsPatientIdentifier.uuid</property>

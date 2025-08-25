@@ -29,6 +29,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+import org.openmrs.util.ConfigUtil;
 
 @Component
 @Configuration
@@ -40,11 +41,11 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	
 	public static final String GP_KEYSTORE_PATH = "labonfhir.keystorePath";
 	
-	public static final String GP_KEYSTORE_PASS = "labonfhir.keystorePass";
+	public static final String GP_KEYSTORE_PASS = "labonfhir.keystorepass";
 	
 	public static final String GP_TRUSTSTORE_PATH = "labonfhir.truststorePath";
 	
-	public static final String GP_TRUSTSTORE_PASS = "labonfhir.truststorePass";
+	public static final String GP_TRUSTSTORE_PASS = "labonfhir.truststorepass";
 	
 	public static final String GP_ACTIVATE_FHIR_PUSH = "labonfhir.activateFhirPush";
 	
@@ -93,9 +94,9 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		try {
 			if (administrationService.getGlobalProperty(GP_KEYSTORE_PATH) != null
 			        && !administrationService.getGlobalProperty(GP_KEYSTORE_PATH).isEmpty()) {
-				String keyPassword = administrationService.getGlobalProperty(GP_KEYSTORE_PASS);
+				String keyPassword = ConfigUtil.getProperty(GP_KEYSTORE_PASS);
 				File truststoreFile = new File(administrationService.getGlobalProperty(GP_TRUSTSTORE_PATH));
-				String truststorePassword = administrationService.getGlobalProperty(GP_TRUSTSTORE_PASS);
+				String truststorePassword = ConfigUtil.getProperty(GP_TRUSTSTORE_PASS);
 				
 				KeyStore keystore = loadKeystore(administrationService.getGlobalProperty(GP_KEYSTORE_PATH));
 				
@@ -135,7 +136,7 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	}
 	
 	public String getLisPassword() {
-		return administrationService.getGlobalProperty(GP_PASSWORD);
+		return ConfigUtil.getProperty(GP_PASSWORD);
 	}
 	
 	public String getPatientIdentifierUuid() {
@@ -195,7 +196,7 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 			is = new FileInputStream(file);
 			keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 			
-			String password = administrationService.getGlobalProperty(GP_KEYSTORE_PASS);
+			String password = ConfigUtil.getProperty(GP_KEYSTORE_PASS);
 			
 			keystore.load(is, password.toCharArray());
 			
