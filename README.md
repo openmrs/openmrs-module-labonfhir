@@ -31,13 +31,13 @@ Configure the Following Global Properties Required By the Lab on Fhir Module
 * `labonfhir.lisUrl` ,The URL for the OpenELIS system to communicate with
 * `labonfhir.lisUserUuid` ,UUID for the service user that represents OpenELIS
 * `labonfhir.truststorePath` , Path to truststore for HttpClient
-* `labonfhir.truststorePass` , Truststore password
+* `labonfhir.truststorepass` , Truststore password , You can also set this through the `OMRS_EXTRA_LABONFHIR_TRUSTSTOREPASS` env variable
 * `labonfhir.keystorePath` , Path to keystore for HttpClient
-* `labonfhir.keystorePass` , Keystore password
+* `labonfhir.keystorepass` , Keystore password .You can also set this through the `OMRS_EXTRA_LABONFHIR_KEYSTOREPASS` env Variable
 * `labonfhir.activateFhirPush` ,Switches on/off the FHIR Push Functionality with in the module to an external LIS
 * `labonfhir.authType` , The HTTP Auth type to support .Either SSL or Basic
 * `labonfhir.userName`  ,User name for HTTP Basic Auth with the LIS
-* `labonfhir.password`  ,Password for HTTP Basic Auth with the LIS
+* `labonfhir.password`  ,Password for HTTP Basic Auth with the LIS. You can also set this through `OMRS_EXTRA_LABONFHIR_PASSWORD` env Variable
 * `labonfhir.filterOrderBytestUuids` ,Allows filtering Oders by Test Uuuids- either true or false
 * `labonfhir.orderTestUuids` ,Concept UUIDs to filter by for Test Orders that get sent to the LIS
 * `labonfhir.labUpdateTriggerObject` ,The OpenMRS object type that should trigger LIS synchronization - either Encounter or Order
