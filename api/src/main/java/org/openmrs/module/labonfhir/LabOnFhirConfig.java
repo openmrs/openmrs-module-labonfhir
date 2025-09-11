@@ -41,11 +41,11 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	
 	public static final String GP_KEYSTORE_PATH = "labonfhir.keystorePath";
 	
-	public static final String GP_KEYSTORE_PASS = "labonfhir.keystorepass";
+	public static final String GP_KEYSTORE_PASSWORD = "labonfhir.keystorepassword";
 	
 	public static final String GP_TRUSTSTORE_PATH = "labonfhir.truststorePath";
 	
-	public static final String GP_TRUSTSTORE_PASS = "labonfhir.truststorepass";
+	public static final String GP_TRUSTSTORE_PASSWORD = "labonfhir.truststorepassword";
 	
 	public static final String GP_ACTIVATE_FHIR_PUSH = "labonfhir.activateFhirPush";
 	
@@ -53,7 +53,7 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	
 	public static final String GP_AUTH_TYPE = "labonfhir.authType";
 	
-	public static final String GP_USER_NAME = "labonfhir.userName";
+	public static final String GP_USER_NAME = "labonfhir.username";
 	
 	public static final String GP_PASSWORD = "labonfhir.password";
 	
@@ -68,6 +68,10 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	public static final String GP_ADD_OBS_AS_TASK_INPUT = "labonfhir.addObsAsTaskInput";
 	
 	public static final String GP_FILTER_ORDER_BY_TEST_UUIDS = "labonfhir.filterOrderBytestUuids";
+	
+	public static final String GP_FILTER_DEMO_DATA = "labonfhir.filterDemoData";
+	
+	public static final String DEMO_PATIENT_ATTR = "demo_patient";
 	
 	public enum AuthType {
 		SSL,
@@ -94,9 +98,9 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 		try {
 			if (administrationService.getGlobalProperty(GP_KEYSTORE_PATH) != null
 			        && !administrationService.getGlobalProperty(GP_KEYSTORE_PATH).isEmpty()) {
-				String keyPassword = ConfigUtil.getProperty(GP_KEYSTORE_PASS);
+				String keyPassword = ConfigUtil.getProperty(GP_KEYSTORE_PASSWORD);
 				File truststoreFile = new File(administrationService.getGlobalProperty(GP_TRUSTSTORE_PATH));
-				String truststorePassword = ConfigUtil.getProperty(GP_TRUSTSTORE_PASS);
+				String truststorePassword = ConfigUtil.getProperty(GP_TRUSTSTORE_PASSWORD);
 				
 				KeyStore keystore = loadKeystore(administrationService.getGlobalProperty(GP_KEYSTORE_PATH));
 				
@@ -132,7 +136,7 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	}
 	
 	public String getLisUserName() {
-		return administrationService.getGlobalProperty(GP_USER_NAME);
+		return ConfigUtil.getProperty(GP_USER_NAME);
 	}
 	
 	public String getLisPassword() {
@@ -158,13 +162,18 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	}
 	
 	public Boolean filterOrderByTestUuuids() {
-		String filterOrders = administrationService.getGlobalProperty(GP_FILTER_ORDER_BY_TEST_UUIDS, "true");
+		String filterOrders = administrationService.getGlobalProperty(GP_FILTER_ORDER_BY_TEST_UUIDS, "false");
 		return Boolean.valueOf(filterOrders);
 	}
 	
 	public Boolean addObsAsTaskInput() {
 		String addObsAsTaskInPut = administrationService.getGlobalProperty(GP_ADD_OBS_AS_TASK_INPUT, "false");
 		return Boolean.valueOf(addObsAsTaskInPut);
+	}
+	
+	public Boolean filterDemoData() {
+		String filterDemoData = administrationService.getGlobalProperty(GP_FILTER_DEMO_DATA, "true");
+		return Boolean.valueOf(filterDemoData);
 	}
 	
 	public AuthType getAuthType() {
@@ -196,7 +205,7 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 			is = new FileInputStream(file);
 			keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 			
-			String password = ConfigUtil.getProperty(GP_KEYSTORE_PASS);
+			String password = ConfigUtil.getProperty(GP_KEYSTORE_PASSWORD);
 			
 			keystore.load(is, password.toCharArray());
 			

@@ -6,8 +6,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Task;
+import org.openmrs.PersonAttribute;
+import org.openmrs.api.PatientService;
 import org.openmrs.module.fhir2.api.FhirTaskService;
 import org.openmrs.module.labonfhir.FhirConfig;
+import org.openmrs.module.labonfhir.LabOnFhirConfig;
 import org.openmrs.module.labonfhir.api.event.OrderCreationListener;
 import org.openmrs.module.labonfhir.api.model.FailedTask;
 import org.openmrs.module.labonfhir.api.service.LabOnFhirService;
@@ -33,10 +36,16 @@ public class RetryFailedTasks extends AbstractTask implements ApplicationContext
 	private FhirConfig fhirConfig;
 	
 	@Autowired
+	private LabOnFhirConfig config;
+	
+	@Autowired
 	private FhirTaskService fhirTaskService;
 	
 	@Autowired
 	private LabOnFhirService labOnFhirService;
+	
+	@Autowired
+	private PatientService patientService;
 	
 	@Autowired
 	@Qualifier("labOrderListener")
@@ -70,12 +79,19 @@ public class RetryFailedTasks extends AbstractTask implements ApplicationContext
 			if (task == null) {
 				return;
 			}
+			PersonAttribute demoAttr = patientService.getPatientByUuid(task.getFor().getReferenceElement().getIdPart())
+			        .getAttribute(LabOnFhirConfig.DEMO_PATIENT_ATTR);
+			if (config.filterDemoData() && Boolean.valueOf(demoAttr != null ? demoAttr.getValue() : "false")) {
+				log.info("Skiping Demo Task : " + failedTask.getTaskUuid() + " for Patient "
+				        + task.getFor().getReferenceElement().getIdPart());
+				return;
+			}
 			try {
 				Bundle labBundle = orderCreationListener.createLabBundle(task);
 				fhirConfig.getFhirClient().transaction().withBundle(labBundle).execute();
 				failedTask.setIsSent(true);
 				labOnFhirService.saveOrUpdateFailedTask(failedTask);
-				log.info("Resent Failed task:" + failedTask.getTaskUuid());
+				log.info("Resent Failed task : " + failedTask.getTaskUuid());
 				log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
 			}
 			catch (Exception e) {

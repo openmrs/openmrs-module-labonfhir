@@ -20,6 +20,7 @@ import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
 import org.openmrs.Order;
+import org.openmrs.PersonAttribute;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirObservationService;
@@ -57,6 +58,12 @@ public class LabOrderHandler {
 	private FhirContext fhirContext;
 	
 	public Task createOrder(Order order) throws OrderCreationException {
+		PersonAttribute demoAttr = order.getPatient().getAttribute(LabOnFhirConfig.DEMO_PATIENT_ATTR);
+		if (config.filterDemoData() && Boolean.valueOf(demoAttr != null ? demoAttr.getValue() : "false")) {
+			log.info("Skiping Demo Order : " + order.getUuid() + " for Patient " + order.getPatient().getUuid());
+			return null;
+		}
+		
 		//TDO: MAKE THIS A GLOBAL CONFIG
 		final String REQUIRED_TESTS_UUIDS = config.getOrderTestUuids(); // GeneXpert
 		// Exit if Test Order doesn't contain required tests
@@ -166,6 +173,11 @@ public class LabOrderHandler {
 	
 	public Task createOrder(Encounter encounter) throws OrderCreationException {
 		if (encounter.getOrders().isEmpty()) {
+			return null;
+		}
+		PersonAttribute demoAttr = encounter.getPatient().getAttribute(LabOnFhirConfig.DEMO_PATIENT_ATTR);
+		if (config.filterDemoData() && Boolean.valueOf(demoAttr != null ? demoAttr.getValue() : "false")) {
+			log.info("Skiping Demo Encounter : " + encounter.getUuid() + " for Patient " + encounter.getPatient().getUuid());
 			return null;
 		}
 		// Create References
