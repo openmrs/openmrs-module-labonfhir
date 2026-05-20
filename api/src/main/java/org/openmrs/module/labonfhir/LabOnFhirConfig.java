@@ -68,6 +68,8 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	
 	public static final String GP_FILTER_ORDER_BY_TEST_UUIDS = "labonfhir.filterOrderBytestUuids";
 	
+	public static final String GP_CREATE_OBS_GROUP = "labonfhir.createObsGroup";
+	
 	public enum AuthType {
 		SSL,
 		BASIC
@@ -164,6 +166,11 @@ public class LabOnFhirConfig implements ApplicationContextAware {
 	public Boolean addObsAsTaskInput() {
 		String addObsAsTaskInPut = administrationService.getGlobalProperty(GP_ADD_OBS_AS_TASK_INPUT, "false");
 		return Boolean.valueOf(addObsAsTaskInPut);
+	}
+	
+	public Boolean createObsGroup() {
+		String createObsGroup = administrationService.getGlobalProperty(GP_CREATE_OBS_GROUP, "false");
+		return Boolean.valueOf(createObsGroup);
 	}
 	
 	public AuthType getAuthType() {

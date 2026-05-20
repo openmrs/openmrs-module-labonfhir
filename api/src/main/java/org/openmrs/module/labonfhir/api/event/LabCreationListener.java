@@ -122,7 +122,7 @@ public abstract class LabCreationListener implements EventListener {
 				}
 				catch (Exception e) {
 					saveFailedTask(task.getIdElement().getIdPart(),
-					    e.getCause() != null ? e.getCause().getMessage() : e.getMessage().substring(0, 100));
+					    e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
 					log.error("Failed to send Task with UUID " + task.getIdElement().getIdPart(), e.getMessage());
 				}
 				log.debug(ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(labBundle));
@@ -132,9 +132,16 @@ public abstract class LabCreationListener implements EventListener {
 	
 	private void saveFailedTask(String taskUuid, String error) {
 		FailedTask failedTask = new FailedTask();
-		failedTask.setError(error);
+		failedTask.setError(truncateError(error));
 		failedTask.setIsSent(false);
 		failedTask.setTaskUuid(taskUuid);
 		labOnFhirService.saveOrUpdateFailedTask(failedTask);
+	}
+	
+	private String truncateError(String error) {
+		if (error == null) {
+			return "Unknown error";
+		}
+		return error.length() > 255 ? error.substring(0, 255) : error;
 	}
 }
