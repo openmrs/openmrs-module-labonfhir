@@ -29,7 +29,13 @@ import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.codesystems.TaskStatus;
+import org.openmrs.Concept;
+import org.openmrs.ConceptSet;
+import org.openmrs.Encounter;
+import org.openmrs.Obs;
 import org.openmrs.Order;
+import org.openmrs.api.ConceptService;
+import org.openmrs.api.ObsService;
 import org.openmrs.api.OrderService;
 import org.openmrs.module.fhir2.FhirConstants;
 import org.openmrs.module.fhir2.api.FhirDiagnosticReportService;
@@ -89,6 +95,12 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 	
 	@Autowired
 	OrderService orderService;
+	
+	@Autowired
+	ConceptService conceptService;
+	
+	@Autowired
+	ObsService obsService;
 	
 	@Autowired
 	ObservationReferenceTranslator observationReferenceTranslator;
@@ -296,6 +308,7 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 										newObs.setEncounter(encounterReference);
 										newObs.setBasedOn(basedOn);
 										newObs = observationService.create(newObs);
+										createObsGroup(newObs);
 										Reference obsRef = new Reference();
 										obsRef.setReference(
 										    ResourceType.Observation + "/" + newObs.getIdElement().getIdPart());
@@ -318,6 +331,69 @@ public class FetchTaskUpdates extends AbstractTask implements ApplicationContext
 			catch (Exception e) {}
 		}
 		return taskOutPutUpdated;
+	}
+	
+	private void createObsGroup(Observation fhirObservation) {
+		try {
+			if (!config.createObsGroup()) {
+				return;
+			}
+			if (fhirObservation == null || fhirObservation.getIdElement() == null) {
+				return;
+			}
+			String obsUuid = fhirObservation.getIdElement().getIdPart();
+			Obs newOpenmrsObs = observationDao.get(obsUuid);
+			if (newOpenmrsObs == null) {
+				return;
+			}
+			
+			Concept obsConcept = newOpenmrsObs.getConcept();
+			Encounter encounter = newOpenmrsObs.getEncounter();
+			if (obsConcept == null || encounter == null) {
+				return;
+			}
+			
+			List<ConceptSet> parentSets = conceptService.getSetsContainingConcept(obsConcept);
+			if (parentSets == null || parentSets.isEmpty()) {
+				return;
+			}
+			
+			for (ConceptSet conceptSet : parentSets) {
+				Concept panelSet = conceptSet.getConceptSet();
+				if (panelSet == null || panelSet.getName() == null || panelSet.getName().getName() == null) {
+					continue;
+				}
+				if (!panelSet.getName().getName().toLowerCase().contains("panel")) {
+					continue;
+				}
+				
+				Obs existingGroup = null;
+				for (Obs encObs : encounter.getObsAtTopLevel(false)) {
+					if (panelSet.equals(encObs.getConcept())) {
+						existingGroup = encObs;
+						break;
+					}
+				}
+				
+				Obs obsGroup;
+				if (existingGroup != null) {
+					obsGroup = existingGroup;
+				} else {
+					obsGroup = new Obs();
+					obsGroup.setConcept(panelSet);
+					obsGroup.setEncounter(encounter);
+					obsGroup.setPerson(newOpenmrsObs.getPerson());
+					obsGroup.setObsDatetime(newOpenmrsObs.getObsDatetime());
+					obsGroup.setLocation(newOpenmrsObs.getLocation());
+				}
+				
+				obsGroup.addGroupMember(newOpenmrsObs);
+				obsService.saveObs(obsGroup, "Grouping obs under panel " + panelSet.getName().getName());
+			}
+		}
+		catch (Exception e) {
+			log.error("Could not create obs group : " + e.toString() + getStackTrace(e));
+		}
 	}
 	
 	@Override

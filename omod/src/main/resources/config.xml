@@ -54,7 +54,7 @@
 	<globalProperty>
 		<property>@MODULE_ID@.lisUrl</property>
 		<description>The URL for an LIS system like OpenELIS system to communicate with</description>
-		<defaultValue>http://shr-hapi-fhir:8080/fhir/</defaultValue>
+		<defaultValue>http://openhim-core:5001/fhir/</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.lisUserUuid</property>
@@ -94,12 +94,12 @@
 	<globalProperty>
 		<property>@MODULE_ID@.userName</property>
 		<description>User name for HTTP Basic Auth with the LIS</description>
-		<defaultValue>user</defaultValue>
+		<defaultValue>IsantePLUS</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.password</property>
 		<description>Password for HTTP Basic Auth with the LIS</description>
-		<defaultValue>password</defaultValue>
+		<defaultValue>admin</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.openmrsPatientIdentifier.uuid</property>
@@ -134,11 +134,16 @@
 	<globalProperty>
 		<property>@MODULE_ID@.filterOrderBytestUuids</property>
 		<description>Allows filtering Oders by Test Uuuids</description>
-		<defaultValue>true</defaultValue>
+		<defaultValue>false</defaultValue>
 	</globalProperty>
 	<globalProperty>
 		<property>@MODULE_ID@.openElisUrl</property>
 		<description>OpenELIS URL For IsantePlus Lab Form compatibility</description>
-		<defaultValue>http://shr-hapi-fhir:8080/fhir/</defaultValue>
+		<defaultValue>http://openhim-core:5001/fhir/</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.createObsGroup</property>
+		<description>When true, on incoming lab results, groups child obs under a parent obs group whose concept is the panel (lab set) concept containing the result's concept as a set member.</description>
+		<defaultValue>true</defaultValue>
 	</globalProperty>
 </module>
